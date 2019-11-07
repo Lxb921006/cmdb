@@ -1,0 +1,47 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+.div_big{
+	height: 100%;
+	width: 100%;
+}
+.div_for_h2{
+	height: 50px;
+/*	background: darkgrey; */
+	border-bottom: 1px solid gainsboro;
+}
+.div_select{
+	height: 24px;
+	width: 166px;
+	margin-left: 50px;
+	margin-bottom: 10px;
+}
+.h2_change{
+	padding-top: 10px;
+	margin-left: 50px;
+}
+.div_select_input_one{
+	margin-top: 2px;
+	border-bottom: 1px solid gainsboro;
+}
+
+.div_input_change{
+	margin-left: 50px;
+	margin-top: 24px;
+}
+
+.permi_button{
+	margin-top: 24px;
+	width: 75px;
+	height: 25px;
+	margin-left: 8px;
+	cursor: pointer;
+	background: #C9DBED;
+	border:1px #edfffc solid;
+}
+.permi_button:hover{
+	background: #787980;
+}
+
+

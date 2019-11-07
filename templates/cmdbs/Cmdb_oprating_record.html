@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>操作日志</title>
+    <link rel="stylesheet" href="/static/css/layui-v2.5.4/layui/css/layui.css">
+    <style>
+         *{
+            margin: 0;
+            padding: 0;
+        }
+        html{
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body{
+            width: 100%;
+            min-height: 100%;
+            background: #f1f1f1;
+        }
+        .tag_body{
+            position: relative;
+            padding: 6px;
+            margin: 0 auto;
+        }
+         .tag_content{
+            margin: 6.5px;
+        }
+        .tag_content>*{
+            padding: 24px;
+        }
+        .tag_content_mid{
+            position: relative;
+            width: 100%;
+            display: block;
+            box-sizing: border-box;
+            border-radius: 2px;
+            background-color: #fff;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+        }
+        .tag_search_condition{
+            background-color: #f1f1f1;
+        }
+        .tag_three_input{
+            display: inline-block;
+            padding: 20px 3px;
+        }
+        .tag_three_input input{
+            height: 31px;
+            width: 134px;
+            padding-left: 10px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            border-collapse: collapse;
+            border-radius: 3px;
+        }
+        .tag_three_input_button{
+            height: 30px;
+            line-height: 30px;
+            padding: 1px 18px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+         }
+        .tag_three_input button:hover{
+            background-color: #439695;
+        }
+        .tag_first_input{
+            margin-left: 6px;
+        }
+        .tag_last_input{
+            float: right;
+            margin-right: 7px;
+            margin-top: -3px;
+        }
+
+        .tag_last_input_button{
+            height: 34px;
+            width: 35px;
+            padding-right: 1px;
+            line-height: 30px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .tag_last_input_button:hover{
+            background-color: #439695;
+        }
+        .tag_table_content{
+            position: relative;
+            width: 100%;
+            margin-top: 58px;
+            box-sizing: border-box;
+        }
+        table{
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        .tag-table{
+            width: 100%;
+            background-color: #fff;
+            color: #666;
+        }
+        .tag-table{
+            margin: 0 0;
+        }
+        .tag-table td, .tag-table th{
+            position: relative;
+            padding: 9px 15px;
+            min-height: 20px;
+            line-height: 20px;
+        }
+        .tag-table td, .tag-table th{
+            min-width: 80px;
+        }
+         .tag-table td, .tag-table th{
+             border-width: 1px;
+             border-style: solid;
+             border-color: #e6e6e6;
+         }
+         .tag-table th{
+             background-color: #f1f1f1;
+         }
+         .tag-table td{
+             text-align: center;
+         }
+        .tag_page_show{
+            position: relative;
+            width: 100%;
+            height: 47px;
+            line-height: 44px;
+            box-sizing: border-box;
+            border-width: 0 1px 1px 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+        .tag_page_show_content{
+            position: relative;
+            padding: 0 13px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .tag_page_show_content>*{
+            padding: 0 4px;
+            font-size: 12px;
+        }
+        .tag_page_select{
+            border-radius: 4px;
+            height: 25px;
+        }
+        .layui_next_last{
+            cursor: pointer;
+        }
+        .layui_next_last:hover{
+            color: #009688;
+        }
+        .tag_jump_page_number{
+            width: 45px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgb(169, 169, 169);
+        }
+        .layui-icon{
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tag_body">
+        <div class="tag_content">
+            <div class="tag_content_mid">
+                <div class="tag_search_condition">
+                    <div class="tag_three_input tag_first_input">
+                        <input type="date" name="begin_date" >
+                    </div>
+                    <div class="tag_three_input">
+                        <input type="date" name="end_date">
+                    </div>
+                    <div class="tag_three_input">
+                        <input type="text" placeholder="请输入搜索内容" name="search_data">
+                    </div>
+                    <div class="tag_three_input">
+                        <button type="button" class="tag_three_input_button"><i class="layui-icon" id="search" title="搜索">&#xe615;</i></button>
+                    </div>
+                    <div class="tag_three_input tag_last_input">
+                        <button type="button" class="tag_last_input_button"><i class="layui-icon" id="flush_page" title="刷新">&#xe669;</i></button>
+                    </div>
+                </div>
+                <div class="tag_table_content">
+                    <table class="tag-table">
+                        <thead>
+                            <tr>
+                                <th>操作用户</th>
+                                <th>操作内容</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clears">
+                        {% for item in data_info %}
+                            <tr>
+                                <td>{{ item.login_user }}</td>
+                                <td>{{ item.operation_record }}</td>
+                                <td>{{ item.date }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tag_page_show">
+                        <div class="tag_page_show_content">
+                            <span>
+                                <label>每页显示
+                                    <select class="tag_page_select" id="change_page_number" onchange="change_data_number()">
+                                        <option value="10">10条/页</option>
+                                        <option value="20">20条/页</option>
+                                        <option value="30">30条/页</option>
+                                        <option value="40">40条/页</option>
+                                        <option value="50">50条/页</option>
+                                    </select>
+                                </label>
+                            </span>
+                            <span class="pages" id="previous">
+                                <i class="layui-icon layui_next_last" title="上一页">&#xe65a;</i>
+                            </span>
+                            <span class="pages" id="next">
+                                <i class="layui-icon layui_next_last" title="下一页">&#xe65b;</i>
+                            </span>
+                            <span>跳转到第 <input class="tag_jump_page_number" type="number" name="jump_page"> 页</span>
+                            <span  id="now_page_number">第1页</span>
+                            <span id="total_pages">总共{{ total_page }}页</span>
+                            <span id="all_count">合计{{ total_number }}条</span>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+    /*这里展示每页的数据*/
+    page_number = 1; /*这里只能是要设置一个全局变量,因为以下函数都需要用到,这个变量非常重要*/
+    function change_data_number() {
+        $.ajax({
+            url:'/cmdb/logs/',
+            type:'post',
+            data:{
+                    'cur_page': 1,
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':'',
+                    'search_data':$("input[name='search_data']").val(),
+                    'begin_date': $("input[name='begin_date']").val(),
+                    'end_date': $("input[name='end_date']").val(),
+                },
+            error:function () {
+                console.log('失败');
+            },
+            success:function (data) {
+                page_number = 1;
+               var add_datas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        add_datas += '<tr>';
+                        add_datas += '<td>'+alldatas['login_user']+'</td>';
+                        add_datas += '<td>'+alldatas['operation_record']+'</td>';
+                        add_datas += '<td>'+alldatas['date']+'</td>';
+                        add_datas += '</tr>';
+                    }
+                $("#clears").empty().html(add_datas);
+                $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                $("#now_page_number").empty().html('第'+page_number+'页');
+                $("#all_count").empty().html('合计'+data['total_number']+'条');
+            }
+        })
+    }
+
+    /*这里就是牛皮的翻页了*/
+    $(function () {
+        $('span').on('click', function () {
+            if($(this).attr('id')=='previous'){
+                page_number --;
+                if(page_number>0){
+                    console.log('one:'+page_number);
+                    turn_page();
+                }
+                else{
+                    page_number = 1;
+                    console.log('two:'+page_number);
+                    alert('别点了,翻完了.');
+                }
+            }
+            else if($(this).attr('id')=='next'){
+                page_number ++;
+                console.log('three:'+page_number);
+                turn_page();
+            }
+        })
+    });
+
+    /*这里是翻页的核心函数*/
+    function turn_page() {
+        $.ajax({
+                url:'/cmdb/logs/',
+                type:'post',
+                data:{
+                    'cur_page': page_number,
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':'',
+                    'search_data':$("input[name='search_data']").val(),
+                    'begin_date': $("input[name='begin_date']").val(),
+                    'end_date': $("input[name='end_date']").val(),
+                },
+                error:function () {
+                    console.log('失败');
+                },
+                success:function (data) {
+                //    console.log('总页数'+data['total_pages']);
+                    if(data['total_pages'] == 1 && page_number>data['total_pages']){
+                        page_number = data['total_pages'];
+                        alert('别点了,翻完了.');
+                        return false;
+                    }
+                    else if(page_number>data['total_pages'] && data['total_pages'] != 1){
+                //        console.log('four'+page_number);
+                        page_number = data['total_pages'];
+                        alert('别点了,翻完了.');
+                        return false;
+                    }
+                    var add_datas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        add_datas += '<tr>';
+                        add_datas += '<td>'+alldatas['login_user']+'</td>';
+                        add_datas += '<td>'+alldatas['operation_record']+'</td>';
+                        add_datas += '<td>'+alldatas['date']+'</td>';
+                        add_datas += '</tr>';
+                    }
+                    $("#clears").empty().html(add_datas);
+                    $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                    $("#now_page_number").empty().html('第'+page_number+'页');
+                    $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+
+        /*这里是提交页码*/
+        $("input[name='jump_page']").keypress(function (e) {
+            if(e.which == "13")
+                if($(this).val()){
+                    search_page($(this).val());
+                }
+                else{
+                    alert('请输入要查询的时间或关键词.');
+                }
+        });
+
+        $('#search').click(function () {
+            page_number = 1;
+            turn_page();
+        });
+        /*这里是提交页码后台返回的数据展示*/
+        function search_page(page) {
+            $.ajax({
+                url:'/cmdb/logs/',
+                type:'post',
+                data:{
+                    'cur_page': '',
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':$("input[name='jump_page']").val(),
+                    'search_data':$("input[name='search_data']").val(),
+                    'begin_date': $("input[name='begin_date']").val(),
+                    'end_date': $("input[name='end_date']").val(),
+                },
+                error:function () {
+                    console.log('失败.')
+                },
+                success:function (data) {
+                    if($("input[name='jump_page']").val()>data['total_pages']){
+                        alert('好好看,哪有这么多页.');
+                        return false;
+                    }
+                    page_number = page;
+                    var add_datas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        add_datas += '<tr>';
+                        add_datas += '<td>'+alldatas['login_user']+'</td>';
+                        add_datas += '<td>'+alldatas['operation_record']+'</td>';
+                        add_datas += '<td>'+alldatas['date']+'</td>';
+                        add_datas += '</tr>';
+                    }
+                    $("#clears").empty().html(add_datas);
+                    $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                    $("#now_page_number").empty().html('第'+page+'页');
+                    $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+
+        /*按enter键提交查询内容*/
+        $("input[name='end_date']").keypress(function (e) {
+            if(e.which == "13"){
+                page_number = 1;
+                turn_page();
+            }
+        });
+
+        $("input[name='search_data']").keypress(function (e) {
+            if(e.which == "13"){
+                page_number = 1;
+                turn_page();
+            }
+        });
+
+        /*鼠标悬停在tr整行变色*/
+        $(function () {
+            /*鼠标悬停td变颜色*/
+            $(document).on('mouseenter','td',function () {
+                $(this).css('background-color','#f1f1f1');
+                $(this).siblings('td').css('background-color','#f1f1f1');
+            });
+            $(document).on('mouseleave','td',function(){
+                $(this).css('background-color','white');
+                $(this).siblings('td').css('background-color','white');
+            });
+        });
+
+    /*刷新当前页面*/
+        $("#flush_page").click(function () {
+             location.reload(true);
+        });
+</script>
+</html>

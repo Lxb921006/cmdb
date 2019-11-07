@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机状态</title>
+    <style>
+        img{
+            height: 344px;
+            width: 533px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        {% for item in ip %}
+            {% if item.ip == '192.168.171.142' or item.ip == '192.168.171.143' %}
+            <img src="/static/img/machine/{{item.ip}}.png">
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>

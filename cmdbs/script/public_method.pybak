@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+# coding:utf-8
+
+from django.utils.safestring import mark_safe
+from cmdbs.models import record_log
+from cmdbs.models import Servers
+from cmdbs.models import Item
+from cmdbs.models import good_bad_count
+import datetime
+import matplotlib.pyplot as plt
+import random
+import redis
+import json
+import os
+import sys
+import requests
+import datetime
+import winrm
+import functools
+
+
+def Opratings_log(user, desc, date):  # 这里是用户的操作记录方法
+    try:
+        add_r = record_log(
+            login_user=user,
+            operation_record=desc,
+            date=date,
+        )
+        add_r.save()
+    except:
+        return -1
+
+
+def get_machine_data():  # 从redis获取机器的状态数据
+    ips = Servers.objects.filter().all()
+    for connect_ip in ips:
+        if connect_ip.ip == '192.168.171.142' or connect_ip.ip == '192.168.171.143':
+            try:
+                r = redis.Redis(host=connect_ip.ip, password='123', port=6379, db=5)
+            except (redis.exceptions.ConnectionError, redis.exceptions.AuthenticationError):
+                return
+            if len(r.keys()) != 0:
+                item = r.keys()[0]
+                if len(r.brpop(item, 0)) != 0:
+                    machine = json.loads(r.brpop(item, 0)[-1])
+                    machine_status_show(item, machine)
+
+
+def Push_package(project):
+    item_package = {
+        'fish': [r'd:\wwwroot\fish.ipa', r'd:\fishbak'],
+        'dn': [r'd:\wwwroot\dn.ipa', r'd:\dnbak'],
+        'ph': [r'd:\wwwroot\ph.ipa', r'd:\phbak'],
+        'ddz': [r'd:\wwwroot\ddz.ipa', r'd:\ddzbak'],
+        'mhfish': [r'd:\wwwroot\mhfish.ipa', r'd:\mhfishbak'],
+        'kbfish': [r'd:\wwwroot\kbfish.ipa', r'd:\kbfish'],
+        'lxb': [r'd:\wwwroot\lxb.ipa', r'd:\lxbbak'],
+    }
+    ftp_dir = r'd:\work'
+    if project in [k for k, v in item_package.items()]:
+        ip = '192.168.3.6'
+        user = 'administrator'
+        password = 'Wei168983*'
+        format_file = os.path.basename(item_package[project][0])
+        format_dir = os.path.dirname(item_package[project][0])
+        cmd_bak = "copy {} {} /y".format(item_package[project][0], item_package[project][1])
+        real_filename = ftp_dir + os.sep + format_file
+        tran_filename = "/cygdrive/d" + item_package[project][0].replace('d:', '').replace('\\', '/')
+        cmd_copy = "copy {} {} /y".format(real_filename, format_dir)
+        cmd_run = r'cd C:\Program Files (x86)\ICW\bin  & rsync.exe -av {} rsync://192.168.3.7/test'.format(tran_filename)
+        all_cmd = cmd_bak + ' & ' + cmd_copy + ' & ' + cmd_run
+        try:
+            win = winrm.Session("http://{}:{}/wsman".format(ip, 5985), auth=(user, password))
+        except requests.exceptions.ConnectionError:
+            return -1
+        else:
+            res = win.run_cmd(all_cmd)
+            return res
+
+
+def running_cmd(cmd):
+    all_cmd = {'synAccount': 'bash /opt/synAccount.sh',
+               'synLogin': 'bash /opt/synLogin.sh',
+               'synStore': 'bash /opt/synStore.sh',
+               'synGuild': 'bash /opt/synGuild.sh',
+               'synAll': '/usr/bin/python3 /root/down_img.py',
+               }
+    return all_cmd[cmd]
+

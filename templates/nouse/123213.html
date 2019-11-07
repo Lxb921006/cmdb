@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>操作日志</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/layout.css" />
+</head>
+<body>
+    <div class="div_change_4">
+        <div class="check_record_log_css">
+            <input type="date" name="begin_date" />
+            <input type="date" name="end_date" />
+            <input type="text" placeholder="请输入关键词" name="search_data"/>
+            <button class="check_record_button" type="submit">搜索</button>
+        </div>
+        <div class="record_log" id="ajax_show">
+            <table>
+                <thead>
+                    <tr>
+                        <th>操作用户</th>
+                        <th>操作指令</th>
+                        <th>操作时间</th>
+                    </tr>
+                </thead>
+                <tbody id="clears">
+                    {% for server in data %}
+                        <tr>
+                            <td>{{ server.login_user }}</td>
+                            <td>{{ server.operation_record }}</td>
+                            <td>{{ server.date|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="page_record_log" >
+                <span>
+                    <select id="showpage" onchange="ajax_show_datas()">
+                    <option  value="10">10</option>
+                    <option  value="20">20</option>
+                    <option  value="30">30</option>
+                    <option  value="40">40</option>
+                    </select>
+                </span>
+                <span id="all_pages">共{{ items }}记录</span>
+                <span id="Pageing">{{ page }}</span>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+    function ajax_show_datas(){
+            $.ajax({
+                url:'/page_record_operation_log/',
+                type:'post',
+                dataType:'json',
+                data:{"content":$("#showpage").val()},
+                error:function (data) {
+                    console.log("request datas fail!!!!!");
+                },
+                success:function (data) {
+                    $("#clears").empty();
+                    $("#Pageing").empty();
+                    $("#all_pages").empty();
+                    var cleardatas = "";
+                    for(var i=0;i<data['info'].length;i++){
+                        var alldatas = data['info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td>'+alldatas['login_user']+'</td>';
+                        cleardatas += '<td>'+alldatas['operation_record']+'</td>';
+                        cleardatas += '<td>'+alldatas['date']+'</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").append(cleardatas);
+                    $("#Pageing").append(data['page']);
+                    $("#all_pages").append("总共"+data['allpage']+"记录")
+                }
+            });
+        }
+
+    /*初始页面的数据翻页*/
+        $(function(){
+            $(document).on('click',"a[name='page_info']",function(){
+                $.ajax({
+                    type: 'post',
+                    url: '/page_record_operation_log/',
+                    data: {'content': $("#showpage").val(), 'page': $(this).text()},
+                    error: function () {
+                        console.log('fail');
+                    },
+                    success: function (data) {
+                        $("#clears").empty();
+                        $("#Pageing").empty();
+                        $("#all_pages").empty();
+                        var cleardatas = "";
+                        for (var i = 0; i < data['info'].length; i++) {
+                            var alldatas = data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>'+alldatas['login_user']+'</td>';
+                            cleardatas += '<td>'+alldatas['operation_record']+'</td>';
+                            cleardatas += '<td>'+alldatas['date']+'</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").append(cleardatas);
+                        $("#Pageing").append(data['page']);
+                        $("#all_pages").append("总共" + data['allpage'] + "记录");
+                    }
+                });
+            });
+        });
+
+        /*按回车提交input内容*/
+        $($("input[name='search_data']")).keypress(function (e) {
+            if(e.which == "13")
+                if($("input[name='begin_date']").val(),$("input[name='end_date']").val(),$("input[name='search_data']").val()){
+                    check_record_log();
+                }
+                else{
+                    alert('请输入要查询的时间或关键词');
+                }
+        });
+
+        /*点击提交查询内容*/
+        $(".check_record_button").click(function () {
+                if($("input[name='begin_date']").val(),$("input[name='end_date']").val(),$("input[name='search_data']").val()){
+                    check_record_log();
+                }
+                else{
+                    alert('请输入要查询的时间或关键词');
+                }
+        });
+
+        /*这里是提交查询操作记录*/
+        function check_record_log() {
+            $.ajax({
+                url: '/get_date_check_record_log/',
+                type: 'post',
+                data: {'start_time': $("input[name='begin_date']").val(),
+                        'end_time': $("input[name='end_date']").val(),
+                        'search_data': $("input[name='search_data']").val(),
+                        'content': $("#showpage").val(),
+                        'page': $("a[name='page_info']").text()
+                    },
+                error: function (recv_data) {
+                    console.log($("input[name='search_data']").val());
+                },
+                success: function (recv_data) {
+                        $("#clears").empty();
+                        $("#Pageing").empty();
+                        $("#all_pages").empty();
+                        var cleardatas = "";
+                        for (var i = 0; i < recv_data['info'].length; i++) {
+                            var alldatas = recv_data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>'+alldatas['login_user']+'</td>';
+                            cleardatas += '<td>'+alldatas['operation_record']+'</td>';
+                            cleardatas += '<td>'+alldatas['date']+'</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").append(cleardatas);
+                        $("#Pageing").append(recv_data['page']);
+                        $("#all_pages").append("总共" + recv_data['allpage'] + "记录");
+                        $("#showpage").attr("onchange","filter_server_page()");
+                }
+            })
+        }
+
+         /*提交查询结果后返回的数据翻页*/
+        $(function(){
+            $(document).on('click',"a[name='page_record']",function(){
+                $.ajax({
+                    type: 'post',
+                    url: '/get_date_check_record_log/',
+                    data: {
+                        'page': $(this).text(),
+                        'start_time': $("input[name='begin_date']").val(),
+                        'end_time': $("input[name='end_date']").val(),
+                        'search_data': $("input[name='search_data']").val(),
+                        'content': $("#showpage").val(),
+                        },
+                    error: function (data) {
+                        console.log('fail');
+                    },
+                    success: function (data) {
+                        $("#clears").empty();
+                        $("#Pageing").empty();
+                        $("#all_pages").empty();
+                        var cleardatas = "";
+                        for (var i = 0; i < data['info'].length; i++) {
+                            var alldatas = data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>'+alldatas['login_user']+'</td>';
+                            cleardatas += '<td>'+alldatas['operation_record']+'</td>';
+                            cleardatas += '<td>'+alldatas['date']+'</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").append(cleardatas);
+                        $("#Pageing").append(data['page']);
+                        $("#all_pages").append("总共" + data['allpage'] + "记录");
+                    }
+                });
+            });
+        });
+
+        /*这里是查询过滤后的结果每页展示的数据*/
+        function filter_server_page(){
+            $.ajax({
+                url:'/get_date_check_record_log/',
+                type:'post',
+                dataType:'json',
+                data:{'start_time': $("input[name='begin_date']").val(),
+                        'end_time': $("input[name='end_date']").val(),
+                        'search_data': $("input[name='search_data']").val(),
+                        'content': $("#showpage").val(),
+                        'page': $("a[name='page_record']").text()},
+                error:function (data) {
+                    console.log("request datas fail!!!!!");
+                },
+                success:function (data) {
+                    $("#clears").empty();
+                    $("#Pageing").empty();
+                    $("#all_pages").empty();
+                    var cleardatas = "";
+                    for(var i=0;i<data['info'].length;i++){
+                        var alldatas = data['info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td>'+alldatas['login_user']+'</td>';
+                        cleardatas += '<td>'+alldatas['operation_record']+'</td>';
+                        cleardatas += '<td>'+alldatas['date']+'</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").append(cleardatas);
+                    $("#Pageing").append(data['page']);
+                    $("#all_pages").append("总共"+data['allpage']+"记录")
+                }
+            });
+        }
+
+</script>
+</html>

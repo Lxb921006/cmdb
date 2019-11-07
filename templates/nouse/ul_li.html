@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body,html{
+            margin: 0;
+            padding: 0;
+        }
+        .menu_area li a{
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .menu_area li{
+            list-style: none;
+
+        }
+        .menu_area{
+            height: 500px;
+            width: 180px;
+            background: whitesmoke;
+        }
+        .li_distance{
+            padding-top: 1px;
+        }
+        .item_menu{
+            margin-left: -39px;
+        }
+        .format_li{
+            margin-left: 26px;
+        }
+        .change_border_type{
+            height: 28px;
+            cursor: pointer;
+            padding-left: 60px;
+            padding-top: 8px;
+            background-color: #f5dff2;
+            box-shadow: 1px 2px 4px #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="menu_area">
+            <ul class="item_menu">
+                <li>
+                    <div class="change_border_type" style="padding-left: 76px">首页</div>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">机器管理</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">主机列表</a></li>
+                        <li><a target="iframe_a" href="#">主机状态</a></li>
+                        <li><a target="iframe_a" href="#">主机添加</a></li>
+                    </ul>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">平台管理</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">停服维护</a></li>
+                        <li><a target="iframe_a" href="#">版本热更</a></li>
+                    </ul>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">权限管理</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">权限设置</a></li>
+                    </ul>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">日志管理</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">操作日志</a></li>
+                        <li><a target="iframe_a" href="#">web日志</a></li>
+                    </ul>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">用户管理</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">用户管理</a></li>
+                    </ul>
+                </li>
+                <li class="li_distance">
+                    <div class="change_border_type">清除缓存</div>
+                    <ul class="format_li">
+                        <li><a target="iframe_a" href="#">清缓存</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+<script src="jquery.min.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $('.format_li').hide();
+        $(".change_border_type").click(function(){
+            $(this).next().toggle(90);
+           });
+         });
+</script>
+</html>

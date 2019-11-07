@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .table{
+            margin-top: 225px;
+            margin-left: 400px;
+            border-collapse: collapse;
+            border: 1px solid green;
+        }
+        tr,th, td{
+            text-align: center;
+            height: 36px;
+            width: 150px;
+            border: 1px solid green;
+        }
+        td{
+            background-color: darkgrey;
+        }
+        th{
+            background-color: blue;
+        }
+.action-button{ /* 按钮美化 */
+            position: absolute;/*绝对定位*/
+            width: 91px; /* 宽度 */
+            height: 40px; /* 高度 */
+            top: 170px;
+            left: 399px;
+            border-width: 0px; /* 边框宽度 */
+            border-radius: 3px; /* 边框半径 */
+            background: #1E90FF; /* 背景颜色 */
+            cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+            outline: none; /* 不显示轮廓线 */
+            color: white;
+        }
+.action-button_1{
+            position: absolute;/*绝对定位*/
+            width: 91px; /* 宽度 */
+            height: 40px; /* 高度 */
+            top: 170px;
+            left: 500px;
+            border-width: 0px; /* 边框宽度 */
+            border-radius: 3px; /* 边框半径 */
+            background: #1E90FF; /* 背景颜色 */
+            cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+            outline: none; /* 不显示轮廓线 */
+            color: white;
+
+
+.action-button:hover { /* 鼠标移入按钮范围时改变颜色 */
+	background: #5599FF;
+        }
+.action-button_1:hover { /* 鼠标移入按钮范围时改变颜色 */
+	background: #5599FF;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <table class="table">
+            <tr>
+                <th>选项</th>
+                <th>ip</th>
+                <th>内网ip</th>
+                <th>cpu</th>
+                <th>内存</th>
+                <th>硬盘</th>
+                <th>项目</th>
+                <th>时间</th>
+            </tr>
+            {% for server in data %}
+            <tr>
+                <td><input type="checkbox"  name="ip" value="{{ server.ip }}"></td>
+                <td>{{ server.ip }}</td>
+                <td>{{ server.intranet_ip }}</td>
+                <td>{{ server.cpu }}</td>
+                <td>{{ server.memory }}</td>
+                <td>{{ server.disk }}</td>
+                <td>{{ server.project }}</td>
+                <td>{{ server.times|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% csrf_token %}
+        <button class="action-button" type="button" name="actions" value="synAccount">同步Account</button>
+        <button class="action-button_1" type="button" name="actions" value="synLogin">同步Login</button>
+    </div>
+</body>
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            $("button[name='actions']").click(function(){
+                console.log($("input:checkbox[name='ip']:checked").length);
+                if ($("input:checkbox[name='ip']:checked").length <= 0){
+                    alert("都没勾选啊,兄弟!");
+                    return false;
+                }
+                if (confirm("确定操作吗?")){
+                        var parm = $(this).val();
+                        $("input[name='ip']:checked").each(function(){
+                        window.open("http://127.0.0.1:8000/host_page/?values="+$(this).val()+'&nbsp;'+parm);
+                        });
+                    }
+                });
+            });
+    </script>
+</html>

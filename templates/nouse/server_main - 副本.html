@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机管理</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/layout.css" />
+    <style>
+        .search_text_input{
+            width: 150px;
+            height: 24px;
+        }
+        .search_submit_button{
+            width: 70px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="div_change_4">
+        <div class="div_button">
+            <button  class="action-button" type="button" name="actions" value="synAccount">同步Account</button>
+            <button  class="action-button_1" type="button" name="actions" value="synLogin">同步Login</button>
+            <button  class="action-button_1" type="button" name="actions" value="synStore">同步Store</button>
+            <button  class="action-button_1" type="button" name="actions" value="synGuild">同步Guild</button>
+            <button  class="action-button_1" type="button" name="actions" value="updateall">停机维护</button>
+        </div>
+        <div class="server_show" id="ajax_show">
+            <div style="margin-top: 52px;margin-left: 61%">
+                <input class="search_text_input" type="text" name="search_servers" placeholder="搜索" />
+                <button class="search_submit_button" type="submit">搜索</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type='checkbox' id='select_all'/>选项</th>
+                        <th>项目</th>
+                        <th>ip</th>
+                        <th>内存</th>
+                        <th>cpu</th>
+                        <th>硬盘</th>
+                        <th>操作系统</th>
+                    </tr>
+                </thead>
+                <tbody id="clears">
+                    {% for server in data %}
+                    <tr>
+                        <td><input type="checkbox"  name="ip" value="{{ server.ip }}" /></td>
+                        <td>{{ server.project }}</td>
+                        <td>{{ server.ip }}</td>
+                        <td>{{ server.ram }}</td>
+                        <td>{{ server.cpu }}</td>
+                        <td>{{ server.hard_disk }}</td>
+                        <td>{{ server.os }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="div_change_6" >
+                <span>
+                    <select id="showpage" onchange="ajax_show_datas()">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    </select>
+                </span>
+                <span id="all_pages">共{{ items }}记录</span>
+                <span id="Pageing">{{ page }}</span>
+            </div>
+        </div>
+    </div>
+</body>
+    <script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#select_all").click(function(){
+                console.log($(this).prop("checked"));
+                if($(this).prop("checked")){
+                    $("input[name='ip']").prop("checked",true);
+                }else{
+                    $("input[name='ip']").prop("checked",false);
+                }
+            });
+        });
+
+        /*这里是每页显示多少条数据*/
+        function ajax_show_datas(){
+            $.ajax({
+                url:'/show_ajax_server/',
+                type:'post',
+                dataType:'json',
+                data:{"content":$("#showpage").val()},
+                error:function (data) {
+                    console.log("request datas fail!!!!!");
+                    console.log($("#showpage").val());
+                    console.log(data)
+                },
+                success:function (data) {
+                    $("#clears").empty();
+                    $("#Pageing").empty();
+                    $("#all_pages").empty();
+                    var cleardatas = "";
+                    for(var i=0;i<data['info'].length;i++){
+                        var alldatas = data['info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td>'+'<input type="checkbox"  name="ip" value='+alldatas['ip']+'/>'+'</td>';
+                        cleardatas += '<td>'+alldatas['project']+'</td>';
+                        cleardatas += '<td>'+alldatas['ip']+'</td>';
+                        cleardatas += '<td>'+alldatas['ram']+'</td>';
+                        cleardatas += '<td>'+alldatas['cpu']+'</td>';
+                        cleardatas += '<td>'+alldatas['hard_disk']+'</td>';
+                        cleardatas += '<td>'+alldatas['os']+'</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").append(cleardatas);
+                    $("#Pageing").append(data['page']);
+                    $("#all_pages").append("总共"+data['allpage']+"记录")
+                }
+            });
+        }
+
+    /*这里是翻页*/
+        $(function(){
+            $(document).on('click',"a[name='page_info']",function(){
+                $.ajax({
+                    type: 'post',
+                    url: '/show_ajax_server/',
+                    data: {"content": $("#showpage").val(), "page": $(this).text()},
+                    error: function (data) {
+                        console.log('fail');
+                        console.log(data);
+                    },
+                    success: function (data) {
+                        console.log($(this).text());
+                        $("#clears").empty();
+                        $("#Pageing").empty();
+                        $("#all_pages").empty();
+                        var cleardatas = "";
+                        for (var i = 0; i < data['info'].length; i++) {
+                            var alldatas = data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>' + '<input type="checkbox"  name="ip" value=' + alldatas['ip'] + '/>' + '</td>';
+                            cleardatas += '<td>' + alldatas['project'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ip'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ram'] + '</td>';
+                            cleardatas += '<td>' + alldatas['cpu'] + '</td>';
+                            cleardatas += '<td>' + alldatas['hard_disk'] + '</td>';
+                            cleardatas += '<td>' + alldatas['os'] + '</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").append(cleardatas);
+                        $("#Pageing").append(data['page']);
+                        $("#all_pages").append("总共" + data['allpage'] + "记录");
+                    }
+                });
+            });
+        });
+
+        /*按回车提交input内容*/
+        $($("input[name='search_servers']")).keypress(function (e) {
+            if(e.which == "13")
+                enter_click();
+        });
+
+        /*点击提交查询内容*/
+        $(".search_submit_button").click(function () {
+                enter_click();
+        });
+
+        /*提交查询内容后返回的数据*/
+        function enter_click(){
+            if($("input[name='search_servers']").val()){
+                $.ajax({
+                url:/find_servers/,
+                type:'post',
+                data:{'search_data': $("input[name='search_servers']").val()},
+                error: function () {
+                    alert('fail');
+                },
+                success:function (data) {
+                    var cleardatas = "";
+                    for (var i = 0; i < data['info'].length; i++) {
+                        var alldatas = data['info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td>' + '<input type="checkbox"  name="ip" value=' + alldatas['ip'] + '>' + '</td>';
+                        cleardatas += '<td>' + alldatas['project'] + '</td>';
+                        cleardatas += '<td>' + alldatas['ip'] + '</td>';
+                        cleardatas += '<td>' + alldatas['ram'] + '</td>';
+                        cleardatas += '<td>' + alldatas['cpu'] + '</td>';
+                        cleardatas += '<td>' + alldatas['hard_disk'] + '</td>';
+                        cleardatas += '<td>' + alldatas['os'] + '</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").html(cleardatas);
+                    $("#Pageing").html(data['page']);
+                    $("#all_pages").html("总共" + data['allpage'] + "条记录");
+                    $("#showpage").attr("onchange","filter_server_page()");
+                    }
+                })
+            }
+                else{
+                    alert('请输入要查询的关键词.');
+                    return false;
+                }
+            }
+
+         /*这里提交查询后的结果返回展示翻页*/
+        $(function(){
+            $(document).on('click',"a[name='page_info_add']",function(){
+                $.ajax({
+                    type: 'post',
+                    url: '/find_servers/',
+                    data: {'content': $("#showpage").val(),
+                            'page': $(this).text(),
+                            'search_data': $("input[name='search_servers']").val()},
+                    error: function (data) {
+                        console.log('fail');
+                    },
+                    success: function (data) {
+                        var cleardatas = "";
+                        for (var i = 0; i < data['info'].length; i++) {
+                            var alldatas = data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>' + '<input type="checkbox"  name="ip" value=' + alldatas['ip'] + '>' + '</td>';
+                            cleardatas += '<td>' + alldatas['project'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ip'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ram'] + '</td>';
+                            cleardatas += '<td>' + alldatas['cpu'] + '</td>';
+                            cleardatas += '<td>' + alldatas['hard_disk'] + '</td>';
+                            cleardatas += '<td>' + alldatas['os'] + '</td>';
+                       //     cleardatas += '<td>'+ '<span class="del_servers" style="height:10px;color: grey;cursor: pointer;" id='+alldatas['project']+'-'+alldatas['ip']+'>删除</span>' +'</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").html(cleardatas);
+                        $("#Pageing").html(data['page']);
+                        $("#all_pages").html("总共" + data['allpage'] + "条记录");
+                    }
+                });
+            });
+        });
+
+        /*这里是过滤后的查询翻页*/
+        function filter_server_page() {
+            if ($("input[name='search_servers']").val()) {
+                $.ajax({
+                    url: '/find_servers/',
+                    type: 'post',
+                    data: {'content': $("#showpage").val(), 'search_data': $("input[name='search_servers']").val()},
+                    error: function () {
+                        console.log('failure');
+                    },
+                    success: function (data) {
+                        var cleardatas = "";
+                        for (var i = 0; i < data['info'].length; i++) {
+                            var alldatas = data['info'][i];
+                            cleardatas += '<tr>';
+                            cleardatas += '<td>' + '<input type="checkbox"  name="ip" value=' + alldatas['ip'] + '>' + '</td>';
+                            cleardatas += '<td>' + alldatas['project'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ip'] + '</td>';
+                            cleardatas += '<td>' + alldatas['ram'] + '</td>';
+                            cleardatas += '<td>' + alldatas['cpu'] + '</td>';
+                            cleardatas += '<td>' + alldatas['hard_disk'] + '</td>';
+                            cleardatas += '<td>' + alldatas['os'] + '</td>';
+                       //     cleardatas += '<td>'+ '<span class="del_servers" style="height:10px;color: grey;cursor: pointer;" id='+alldatas['project']+'-'+alldatas['ip']+'>删除</span>' +'</td>';
+                            cleardatas += '</tr>';
+                        }
+                        $("#clears").html(cleardatas);
+                        $("#Pageing").html(data['page']);
+                        $("#all_pages").html("总共" + data['allpage'] + "条记录");
+                     //   $("#showpage").attr("onchange","ajax_show_datas()");
+                    }
+                })
+            }
+        }
+
+        /*这里是跟服务器实时交互*/
+        $(function(){
+            $("button[name='actions']").click(function(){
+                console.log($("input:checkbox[name='ip']:checked").length);
+                if ($("input:checkbox[name='ip']:checked").length <= 0){
+                    alert("都没勾选啊,兄弟!");
+                    return false;
+                }
+                if (confirm("确定操作吗?")){
+                        var parm = $(this).val();
+                        $("input[name='ip']:checked").each(function(){
+                            var cmd="http://127.0.0.1:8000/server_action/?values="+$(this).val()+'/'+parm;
+                            window.open(cmd);
+                        });
+                    }
+                });
+            });
+    </script>
+</html>

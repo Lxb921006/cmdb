@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>运维平台v1.0</title>
+    <link rel="stylesheet" href="/static/css/layui-v2.5.4/layui/css/layui.css">
+     <link rel="stylesheet" href="/static/css/jquery-ui.css">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html, body{
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0) !important;
+        }
+        .platform-title{
+            color: whitesmoke;
+            background-color: #323640 !important;
+            height: 45px;
+            width: 100%;
+        }
+        .platform-title li{
+            list-style-type: none;
+            position: absolute;
+            padding-left: 100px;
+        }
+        .platform-title #tile_name{
+            position: absolute;
+            top: 10px;
+            padding-left: 20px;
+        }
+        .platform-title #login_name{
+            position: absolute;
+            height: 30px;
+            width: 60px;
+            top: 12px;
+            right: 43px;
+            font-size: 11px;
+            text-decoration: none;
+            color: whitesmoke;
+            text-align: center;
+            cursor: pointer;
+
+        }
+        .platform-title #login_name.add_hove{
+            border-bottom:4px solid #4e8040;
+        }
+        .platform-title #login_name img{
+            position: absolute;
+            top: 14px;
+            left: 1793px;
+            font-size: 11px;
+            text-decoration: none;
+            color: whitesmoke;
+        }
+        .platform-title #user_info{
+            display: none;
+            position: absolute;
+            font-size: 11px;
+            width: 70px;
+            height: 70px;
+            top: 35px;
+            color: #323640 !important;
+            background: #fff;;
+            border: 1px solid #f1edf5;
+            text-align: center;
+            z-index: 101;
+            box-shadow: 0 2px 4px rgba(0,0,0,.12);
+        }
+        .platform-title #user_info p{
+            padding: 11px 2px 2px 2px;
+        }
+        .menu-look{
+            margin-top: 10px;
+            border-radius:3px;
+            width: 200px;
+            padding-bottom: 10px;
+        }
+        .menu-look ul {
+            list-style-type: none;
+        }
+        .menu_content{
+            padding-top: 10px;
+        }
+        .menu_content ul ul{
+            display:none;
+        }
+        .menu_content ul ul a{
+            padding: 1px 57px 6px 17px;
+            font-size: 12px;
+            color: black;
+        }
+        .menu_content ul ul a:hover{
+            color: #786aed !important;
+        }
+        .show_hide{
+            text-align: center;
+            padding: 8px 0;
+            cursor:pointer;
+        }
+        .show_hide a{
+            color: black;
+            padding: 13px 17px 12px 17px;
+            font-size: 12px;
+        }
+        .show_hide img{
+            padding-top: 13px;
+            padding-left: 13px;
+            transform: rotate(0deg) translateX(0%);
+            transform-origin: right top;
+        }
+        .show_hide:hover{
+            background: #786aed !important;
+        }
+        .show_hide:hover .actives{
+            color: whitesmoke;
+        }
+        .show_hide ul{
+            padding: 0 100px;
+        }
+        .page_content{
+            position: absolute;
+            top: 45px;
+            right: 0;
+            bottom: 0;
+            left: 200px;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .two_level_title{
+            position: relative;
+            height: auto;
+            width: 100%;
+            left: 0;
+            font-size: 0;
+            z-index: 100;
+            transition: all .2s;
+            border: 1px solid #eae8e8;
+            background: #EFEEF0;
+            border-radius: 2px;
+         /*   word-wrap:break-word;
+              word-break:break-all; */
+            -webkit-transition: all .2s;
+        }
+        .no_line{
+            white-space: nowrap;
+        }
+     .lay_i_down{
+            display: block;
+            transform:rotate(0deg);
+            -ms-transform:rotate(0deg); /* Internet Explorer */
+            -moz-transform:rotate(0deg); /* Firefox */
+            -webkit-transform:rotate(0deg); /* Safari 和 Chrome */
+            -o-transform:rotate(0deg); /* Opera */
+            transition:-webkit-transform 0.3s;
+            -webkit-transition:-webkit-transform 0.3s; /* Safari */
+        }
+        .lay_i_up{
+            display: block;
+            transform:rotate(180deg);
+            -ms-transform:rotate(180deg);
+            -moz-transform:rotate(180deg);
+            -webkit-transform:rotate(180deg);
+            -o-transform:rotate(180deg);
+            transition:-webkit-transform 0.3s;
+            -webkit-transition:-webkit-transform 0.3s;
+        }
+        .page_content .two_level_title .children_menu{
+            background: #fff;
+        }
+        .page_content .two_level_title li{
+            font-size: 12px;
+        }
+        .page_content .two_level_title li{
+            line-height: 35px;
+        }
+        .page_content .iframe_show{
+            position: absolute;
+            top: 37px;
+            bottom: 0;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+        .iframe_show iframe{
+            width: 100%;
+            height: 100%;
+        }
+        .two_level_title .children_menu{
+            color: #000;
+        }
+        .two_level_title li{
+            display: inline-block;
+            *display: inline;
+            *zoom: 1;
+            vertical-align: middle;
+            font-size: 14px;
+            transition: all .2s;
+            -webkit-transition: all .2s;
+            position: relative;
+            line-height: 40px;
+            min-width: 65px;
+            padding: 0 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .layui_tag_close:hover{
+            background-color: #FF5722;
+            border-radius: 50%;
+            color: whitesmoke;
+        }
+        .tag_children_title>*{
+            padding: 8px 0;
+        }
+        .notice_hide_menu{
+            display: none;
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            right: 0;
+            top: 0;
+            z-index: 101;
+            line-height: 36px;
+            text-align: center;
+            cursor: pointer;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+        .lay_trans{
+            transform:rotate(9deg);
+            -ms-transform:rotate(9deg); /* Internet Explorer */
+            -moz-transform:rotate(9deg); /* Firefox */
+            -webkit-transform:rotate(180deg); /* Safari 和 Chrome */
+            -o-transform:rotate(30deg); /* Opera */
+        }
+        .tag_content_shade{
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 19891014;
+            background-color: rgb(0, 0, 0);
+            opacity: 0.4;
+        }
+        .tag_users_info{
+            position: fixed;
+            display: none;
+            left: 36%;
+            top: 28%;
+            width: 550px;
+            height: 550px;
+            border-radius: 3px;
+            background-color: #f1f1f1;
+            z-index: 19891020;
+            cursor: move;
+        }
+         .title_name_close_all{
+            position: relative;
+            width: 100%;
+            line-height: 35px;
+            box-sizing: border-box;
+            padding: 0 0;
+             border-radius: 3px;
+            background: #F8F8F8;
+        }
+        .tag_user_title{
+            display: inline-block;
+            font-size: 12px;
+            padding: 1px 15px;
+
+        }
+        .tag_user_info_close{
+            position: relative;
+            display: inline-block;
+            float: right;
+            right: 11px;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 12px;
+
+        }
+        .tag_user_info_close i{
+            border-radius: 50%;
+        }
+        .tag_user_info_close i:hover{
+            background-color: #f1edf5;
+        }
+        .iframe_shows{
+            position: absolute;
+            top: 37px;
+            bottom: 0;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+        .iframe_shows iframe{
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="platform-title">
+        <div id="tile_name">运维平台 v1.0</div>
+        <div id="login_name" data-name="{{ login_user }}">{{ login_user }}
+            <div id="user_info">
+                <p><a id="show_user_info">个人信息</a></p>
+                <p><a href="/cmdb/is_logout/">退出</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="menu-look">
+        <div class="menu_content">
+           <ul>
+               {% if perms.cmdbs.cmdb_machine_manage %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe653;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">机器管理</a>
+                       <i class="layui-icon" style="padding-left: 51px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           {% if perms.cmdbs.cmdb_machine_operating %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/server_base_page/" style="text-decoration: none;" class="menu_name" target="iframe_content">机器操作</a>
+                           </li>
+                           {% endif %}
+                           {% if perms.cmdbs.cmdb_machine_status %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="javascript:;" style="text-decoration: none;" class="menu_name">机器状态</a>
+                           </li>
+                           {% endif %}
+                       </ul>
+               </li>
+               {% endif %}
+               {% if perms.cmdbs.cmdb_platform_manage %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe630;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">平台管理</a>
+                       <i class="layui-icon" style="padding-left: 51px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           {% if perms.cmdbs.cmdb_platform_operating %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/platform_base_page/" style="text-decoration: none;" class="menu_name" target="iframe_content">平台操作</a>
+                           </li>
+                           {% endif %}
+                           {% if perms.cmdbs.cmdb_platform_update %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/pcu/" style="text-decoration: none;" class="menu_name" target="iframe_content">前台更新</a>
+                           </li>
+                           {% endif %}
+                       </ul>
+               </li>
+               {% endif %}
+               {% if perms.cmdbs.cmdb_log_manage %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe60a;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">日志管理</a>
+                       <i class="layui-icon" style="padding-left: 51px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           {% if perms.cmdbs.cmdb_log_operating %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/record_operation_log/" style="text-decoration: none;" class="menu_name" target="iframe_content">操作日志</a>
+                           </li>
+                           {% endif %}
+                           {% if perms.cmdbs.cmdb_log_web %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="javascript:;" style="text-decoration: none;" class="menu_name">web日志</a>
+                           </li>
+                           {% endif %}
+                       </ul>
+               </li>
+               {% endif %}
+               {% if perms.cmdbs.cmdb_user_manage %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe770;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">用户管理</a>
+                       <i class="layui-icon" style="padding-left: 51px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           {% if perms.cmdbs.cmdb_user_operating %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/user_page/" style="text-decoration: none;" class="menu_name" target="iframe_content">用户操作</a>
+                           </li>
+                           {% endif %}
+                           {% if perms.cmdbs.cmdb_permission_set %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/permission/" style="text-decoration: none;" class="menu_name" target="iframe_content">用户权限</a>
+                           </li>
+                           {% endif %}
+                           {% if perms.cmdbs.cmdb_permission_set %}
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="/cmdb/group_permissions/" style="text-decoration: none;" class="menu_name" target="iframe_content">组权限</a>
+                           </li>
+                           {% endif %}
+                       </ul>
+               </li>
+               {% endif %}
+               {% if perms.cmdbs.cmdb_cache_clear %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe640;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">缓存清除</a>
+                       <i class="layui-icon" style="padding-left: 51px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="javascript:;" style="text-decoration: none;" class="menu_name">清缓存</a>
+                           </li>
+                       </ul>
+               </li>
+               {% endif %}
+               {% if perms.cmdbs.cmdb_api %}
+               <li>
+                   <div class="show_hide">
+                       <i class="layui-icon" style="padding-left: 11px;font-size: 12px;">&#xe705;</i>
+                       <a href="javascript:;" style="text-decoration: none;" class="actives">平台api</a>
+                       <i class="layui-icon" style="padding-left: 59px;font-size: 12px;">&#xe603;</i>
+                   </div>
+                       <ul class="tag_children_title">
+                           <li>
+                               <i class="layui-icon" style="padding-left: 35px;font-size: 12px;">&#xe602;</i>
+                               <a href="javascript:;" style="text-decoration: none;" class="menu_name">api说明</a>
+                           </li>
+                       </ul>
+               </li>
+               {% endif %}
+           </ul>
+        </div>
+    </div>
+    <div class="page_content">
+        <ul class="two_level_title">
+            <li id="主页" class="children_menu" target="/cmdb/home/">
+                <i style="padding-left: 2px;font-size: 12px;" class="layui-icon">&#xe68e;</i>
+                主页
+            </li>
+        </ul>
+        <div class="notice_hide_menu">
+            <i class="layui-icon" id="down_up">&#xe61a;</i>
+        </div>
+        <div class="iframe_show">
+            <iframe src="/cmdb/home/" frameborder="0" scrolling="yes" class="x-iframe" name="iframe_content"></iframe>
+        </div>
+    </div>
+    <div class="tag_content_shade"></div>
+    <div class="tag_users_info">
+        <div class="title_name_close_all">
+            <div class="tag_user_title">个人信息</div>
+            <div class="tag_user_info_close"><i class="layui-icon">&#x1006;</i></div>
+        </div>
+        <div class="iframe_shows">
+            <iframe scrolling="auto" allowtransparency="true"  name="iframe_shows" frameborder="0" src=""></iframe>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script src="//apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $('.show_hide').click(function(){
+            $(this).siblings('ul').toggle("slide");
+            var $_dir = $(this).find('i').eq(1),
+                dir = $_dir.attr('data-dir');
+            if(dir && dir=='down') $_dir.html("&#xe603;").attr('data-dir','left');
+            else $_dir.html("&#xe61a;").attr('data-dir','down');
+        });
+
+        $('#login_name').hover(function () {
+            $("#user_info").stop().animate({
+                height:'toggle',
+            });
+            $(this).toggleClass('add_hove');
+        });
+        $('.menu_name').click(function () {
+            var name = $(this).text();
+            var exist_item = new Array();
+            $('.children_menu').each(function () {
+                exist_item.push($(this).attr('id'));
+            });
+            var res = $.inArray(name, exist_item);
+            if (res < 0) {
+                var href = ($(this).attr('href')).replace(".*",''),Li_tag = "<li id=" + name + " class='children_menu' style='background:#fff;' target='"+href+"'>" + name + "<i class='layui-icon layui_tag_close' style='line-height:14px;width:13px;top: 10px;font-size: 12px;position:relative;float: right;right: -6px'>&#x1006;</i>" + "</li>";
+                $('.two_level_title').find('li').css('background', '#EFEEF0');
+                $('.two_level_title').append(Li_tag);
+                $('.children_menu').click(function () {
+                    $(this).css('background','#fff').siblings().css('background','#EFEEF0');
+                    var win_name = $(this).attr('target');
+                    $('.x-iframe').attr('src',win_name);
+                })
+            }
+            else{
+                return false;
+            }
+            console.log($('.two_level_title').height());
+            check_hei()
+        });
+        $(document).on('click','.layui_tag_close',function () {
+            var next_tag = $(this).parent().next().length;
+            if (next_tag>0){
+                $(this).parent().next().css('background','#fff').siblings().css('background','#EFEEF0');
+                var win_name = $(this).parent().next().attr('target');
+                $('.x-iframe').attr('src',win_name);
+                $(this).parent().remove();
+                check_hei()
+            }
+            else {
+                var last_tag = $(this).parent().prev().length;
+                if (last_tag>0){
+                    $(this).parent().prev().css('background','#fff').siblings().css('background','#EFEEF0');
+                    var win_names = $(this).parent().prev().attr('target');
+                    $('.x-iframe').attr('src',win_names);
+                    $(this).parent().remove();
+                    check_hei()
+                }
+            }
+        });
+        $('.notice_hide_menu').click(function () {
+            var index_title = $('.two_level_title').height();
+            if (index_title<39){
+                $('.two_level_title').removeClass('no_line');
+                $('#down_up').addClass('lay_i_up');
+                $('#down_up').removeClass('lay_i_down');
+                $('.notice_hide_menu').attr('title', '收起');
+            }
+            else {
+                $('.two_level_title').addClass('no_line');
+                $('#down_up').addClass('lay_i_down');
+                $('#down_up').removeClass('lay_i_up');
+                $('.notice_hide_menu').attr('title', '展开');
+            }
+        });
+        $('#show_user_info').click(function () {
+            $('.tag_content_shade').show();
+            $('.tag_users_info').show("puff");
+            var users = $('#login_name').attr('data-name');
+            var values = '?username='+users;
+            $("iframe[name='iframe_shows']").attr('src', 'http://118.25.185.60/cmdb/user_infos_page'+values);
+            $(".tag_users_info").draggable({ containment: ".tag_content_shade", scroll: false});
+        });
+
+        $('.tag_user_info_close').click(function () {
+            $('.tag_users_info').hide("puff");
+            $('.tag_content_shade').hide();
+        })
+    });
+
+    function check_hei() {
+        var index_title = $('.two_level_title').find('li').length;
+        if (index_title>18){
+            $('.notice_hide_menu').fadeIn();
+            $('.two_level_title').addClass('no_line');
+            $('.notice_hide_menu').attr('title', '展开');
+        }
+        else {
+            $('.notice_hide_menu').fadeOut("slow")
+        }
+    }
+
+
+</script>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+        button{
+            width: 93px;
+            height: 23px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <form action="" method="post">
+            用户名:<input type="text" name="username">
+            密码:  <input type="password" name="passwd">
+            {% csrf_token %}
+            <button type="submit">确定</button>
+            <span style="color: #ff8547">{{ error }}</span>
+        </form>
+    </div>
+</body>
+</html>

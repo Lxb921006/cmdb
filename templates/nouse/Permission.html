@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>权限管理</title>
+    <link rel="stylesheet" href="/static/css/permi.css/" type="text/css" />
+</head>
+<body>
+    <div class="div_big">
+        <div class="div_for_h2">
+            <h3 class="h2_change">权限设置</h3>
+        </div>
+        <div class="div_select_input_one">
+            <select class="div_select" onchange="show_every_user_perms()">
+                {% for i in all_user %}
+                    <option name="user" value="{{ i.username }}">{{ i.username }}</option>
+                {% endfor %}
+            </select>
+            <button class="permi_button" type="button">确定</button>
+        </div>
+        <div class="div_input_change">
+            <input type="checkbox" name="contents"> 全选
+            <br/>
+            <input type="checkbox" name="content" value="view_machine"> 机器管理
+            <input type="checkbox" name="content" value="view_platform"> 平台管理
+            <input type="checkbox" name="content" value="view_Permission"> 权限管理
+            <input type="checkbox" name="content" value="view_log"> 日志管理
+            <input type="checkbox" name="content" value="view_operation_log"> 操作日志
+            <input type="checkbox" name="content" value="view_web_log"> web日志
+            <input type="checkbox" name="content" value="view_machine_list"> 主机列表
+            <input type="checkbox" name="content" value="view_platform_update"> 停机维护
+            <input type="checkbox" name="content" value="view_version_hotfix"> 版本热更
+            <input type="checkbox" name="content" value="view_cache"> 缓存管理
+            <input type="checkbox" name="content" value="view_User_Management"> 用户管理
+            <input type="checkbox" name="content" value="view_iframe_info"> 基础页面查看
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+    $(function (){
+        $("input[name='contents']").click(function () {
+            if($(this).prop('checked')){
+                $("input[type=checkbox]").prop("checked",true);
+            }
+            else{
+                $("input[type=checkbox]").prop("checked",false);
+            }
+        });
+    });
+
+    /*这里是添加删除权限*/
+    $(function() {
+        $(".permi_button").click(function () {
+            var permi_list = new Array();
+            $("input[name='content']:checked").each(function () {
+                permi_list.push($(this).val());
+            });
+            console.log(permi_list);
+            $.ajax({
+                url: '/add_del_permissions/',
+                type: 'post',
+                data: {'content': JSON.stringify(permi_list), 'user': $("option[name='user']:selected").val()},
+                error: function () {
+                    console.log('设置失败');
+                },
+                success: function (data) {
+                    alert(data['status']);
+                }
+            });
+        });
+    });
+
+    /*这里是加载完页面显示对应用户所拥有的权限*/
+    $(document).ready(function (){
+        $.ajax({
+            url: '/check_permissions/',
+            type: 'post',
+            data: {'user': $("option[name='user']:selected").val()},
+            error: function (res) {
+                alert('fail');
+            },
+            success: function (res) {
+                for(var i=0;i<=res['user_perms'].length;i++){
+                    var perms_name = res['user_perms'][i];
+                    $("input[value="+perms_name+"]").prop("checked", true);
+                }
+            }
+        });
+    });
+
+    /*这里选择查看对应用户的权限*/
+    function show_every_user_perms() {
+        $.ajax({
+            url: '/check_permissions/',
+            type: 'post',
+            data: {'user': $("option[name='user']:selected").val()},
+            error: function (res) {
+                alert('fail');
+            },
+            success: function (res) {
+                $("input[name='content']:checked").each(function () {
+                    $(this).prop("checked", false);
+                });
+                for(var i=0;i<=res['user_perms'].length;i++){
+                    var perms_name = res['user_perms'][i];
+                    $("input[value="+perms_name+"]").prop("checked", true);
+                }
+            }
+        });
+    }
+
+</script>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html{
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body{
+            width: 100%;
+            min-height: 100%;
+            background: #f1f1f1;
+        }
+        .tag_content{
+            position: relative;
+            padding: 12px;
+            margin: 0 auto;
+        }
+        .tag_body input{
+            border-radius: 3px;
+            margin: 5px;
+            height: 26px;
+            width: 189px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            text-align: center;
+        }
+        .tag_body button{
+            border-radius: 3px;
+            margin: 5px;
+            height: 28px;
+            width: 45px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            font-size: 12px;
+        }
+        .tag_body button:hover{
+            background-color: #54968a;
+        }
+        .tag_body{
+            height: 400px;
+            padding: 21px 35px;
+            background: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="tag_content">
+        <div class="tag_body">
+            <div><input type="text" placeholder="ip"></div>
+            <div><input type="text" placeholder="内网ip"></div>
+            <div><input type="number" placeholder="cpu"></div>
+            <div><input type="number" placeholder="内存"></div>
+            <div><input type="number" placeholder="硬盘"></div>
+            <div><input type="text" placeholder="系统"></div>
+            <div><input type="text" placeholder="机房"></div>
+            <div><button type="button">增加</button></div>
+        </div>
+    </div>
+</body>
+</html>

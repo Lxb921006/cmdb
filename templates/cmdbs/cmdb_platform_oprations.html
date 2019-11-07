@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>平台操作</title>
+    <link rel="stylesheet" href="/static/css/layui-v2.5.4/layui/css/layui.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui.css">
+    <style>
+        html{
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body{
+            width: 100%;
+            min-height: 100%;
+            background: #f1f1f1;
+        }
+        .tag_all_show{
+            padding: 16px;
+        }
+        .tag_pub_info{
+            position: relative;
+            padding: 20px 16px;
+            line-height: 50px;
+            width: 100%;
+            border-radius: 2px;
+            box-sizing: border-box;
+            background: #fff;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+        }
+        .layui-btn {
+            height: 32px;
+            line-height: 30px;
+            padding: 0 10px;
+        }
+        .layui-btn .layui-icon{
+            font-size: 14px;
+        }
+        .tag_search{
+            position: relative;
+            line-height: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 16px 0;
+            margin-top: -20px;
+        }
+        .tag_input{
+            border-color: #e6e6e6;
+        }
+        .tag_input{
+            height: 30px;
+            line-height: 1.3;
+            padding: 0 12px;
+            border-width: 1px;
+            border-style: solid;
+            background-color: #fff;
+            border-radius: 2px;
+        }
+        .tag_content_body{
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 0;
+            border-width: 1px 0 1px 0;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+        .tag_machines_actions_body{
+            background: #f1f1f1;
+        }
+        .machine_actions{
+            display: inline-block;
+            height: 38px;
+            width: 82px;
+            line-height: 38px;
+            padding: 0 18px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .machine_actions{
+            margin-right: 6px;
+            margin-bottom: 11px;
+        }
+        .machine_actions{
+            height: 30px;
+            line-height: 8px;
+            padding: 0 8px;
+        }
+        .tag_machines_actions_body{
+            position: relative;
+            z-index: 890;
+            width: 100%;
+            min-height: 50px;
+            line-height: 30px;
+            padding: 10px 15px;
+            border-width: 0 0 1px;
+            box-sizing: border-box;
+        }
+        .tag_machines_actions_body{
+            border-width: 0 1px 1px 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+        .tag_table_content{
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+	.tag_table_change{
+            overflow: auto;
+        }
+        .tag_table_input{
+            height: 18px;
+            width: 20px;
+        }
+        .tag_table_content thead{
+            background: #f1f1f1;
+        }
+        .page_show{
+            position: relative;
+            padding: 0 0;
+            box-sizing: border-box;
+            width: 100%;
+            border-width: 1px 1px 0 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+        td{
+            position: relative;
+            line-height: 45px;
+            border-width: 1px 1px 0 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            min-width: 80px;
+            padding: 0 29px;
+            text-align: center;
+        }
+        th{
+            position: relative;
+            line-height: 45px;
+            min-width: 80px;
+            padding: 0 0;
+            border-width: 0 1px 0 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+        .jump{
+            display: none;
+            position: fixed;
+            height: 483px;
+            width: 650px;
+            left: 660px;
+            top: 92px;
+            background: #fff;;
+            border-radius: 2px;
+            box-shadow: 1px 1px 50px rgba(0,0,0,.3);
+            cursor: move;
+        }
+        .title_name_close{
+            display: inline-block;
+            font-size: 12px;
+        }
+        .title_name_close_01{
+            position: relative;
+            display: inline-block;
+            float: right;
+            margin-right: 25px;
+            padding: 0 0;
+            height: 30px;
+            width: 30px;
+            cursor: pointer;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .title_name_close_all{
+            position: relative;
+            width: 100%;
+            line-height: 40px;
+            box-sizing: border-box;
+            padding: 0 0;
+            background: #F8F8F8;
+        }
+        .tag_content_shade{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        .tag_content_loading{
+            display: none;
+            position: fixed;
+            top: 7%;
+            left: 45%;
+        }
+        .tag_page_show_content{
+            position: relative;
+            padding: 0 13px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .tag_page_select{
+            border-radius: 4px;
+            height: 25px;
+        }
+        .tag_jump_page_number{
+            width: 45px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgb(169, 169, 169);
+        }
+        .tag_page_show_content>*{
+            padding: 0 4px;
+            font-size: 12px;
+        }
+        .layui_next_last{
+            cursor: pointer;
+        }
+        .layui_next_last:hover{
+            color: #009688;
+        }
+        .tag_button{
+            display: inline-block;
+            height: 34px;
+            line-height: 34px;
+            padding: 0 18px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .tag_button_01{
+            display: inline-block;
+            height: 34px;
+            line-height: 34px;
+            padding: 0 18px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .tag_delete_data{
+            background-color: #FF5722;
+        }
+        .machine_actions:hover{
+            background-color: #439695;
+        }
+        .tag_delete_data:hover{
+            background-color: #ff733e;
+        }
+        .td-change>*{
+            margin: 0 7px;
+        }
+        .iframe_show{
+            position: absolute;
+            top: 37px;
+            bottom: 0;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+        .iframe_show iframe{
+            width: 100%;
+            height: 100%;
+        }
+        .layui-icon{
+            font-size: 12px;
+        }
+         .tag_public_action{
+             position: relative;
+             width: 100%;
+             box-sizing: border-box;
+             margin-bottom: 35px;
+             padding: 10px 21px;
+             height: 161px;
+             border-radius: 2px;
+             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0);
+             background: #f1f1f1;
+         }
+        .tag_upload_notice p{
+            color: #843534;
+            font-size: 12px;
+        }
+        .tag_loading_size{
+           font-size: 25px;
+        }
+        .tag_per_select input{
+            display: none;
+        }
+        .tag_lay_icon_ok i{
+            padding: 1px 1px;
+            text-align: center;
+            width: 16px;
+            height: 15px;
+            line-height: 17px;
+            font-size: 12px;
+            border-radius: 2px;
+            color: #f1f1f1;
+            border: 1px solid #d2d2d2;
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="tag_all_show">
+        <div class="tag_pub_info">
+            <div class="tag_search">
+                <input name="search_data" class="tag_input" placeholder="输入查找内容">
+                <button class="layui-btn" style="margin-left: 10px" title="搜索" id="search">
+                    <i class="layui-icon">&#xe615;</i>
+                </button>
+                <button id="flush_page" class="layui-btn" style="float: right;" title="刷新">
+                    <i class="layui-icon" style="margin-right:0;">&#xe9aa;</i>
+                </button>
+            </div>
+            <div class="tag_search">
+                <button class="machine_actions tag_delete_data" id="del_selected">
+                    <i class="layui-icon">&#xe640;</i>批量删除
+                </button>
+                <button id="tag_add_data_click" class="machine_actions" style="margin-left: 4px">
+                    <i class="layui-icon">&#xe61f;</i> 添加
+                </button>
+            </div>
+            <div class="tag_content_body">
+                <div class="tag_machines_actions_body">
+                    <button class="machine_actions" id="synAccount" name="action">同步Account</button>
+                    <button class="machine_actions" id="synStore" name="action">同步Store</button>
+                </div>
+                <div class="tag_table_content tag_table_change">
+                    <table class="tag_table_content">
+                        <thead>
+                            <tr>
+                                <th><input class="tag_table_input" type="checkbox" id="select_all"></th>
+                                <th>项目</th>
+                                <th>描述</th>
+                                <th>服务器数量</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clears">
+                        {% for item in data_info %}
+                            <tr>
+                                <td><input class="tag_table_input" type="checkbox" name="tag_select" data-name="{{ item.project }}"></td>
+                                <td>{{ item.project }}</td>
+                                <td>{{ item.desc }}</td>
+                                <td>{{ item.servers_count }}</td>
+                                <td class="td-change">
+                                    <button class="tag_button" id="edit_pla"><i class="layui-icon">&#xe642;</i>编辑</button>
+                                    <button class="tag_button_01 tag_delete_data" name="del_one_data"><i class="layui-icon">&#xe640;</i>删除</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="page_show">
+                    <div class="tag_page_show_content">
+                        <span>
+                            <label>每页显示
+                                <select class="tag_page_select" id="change_page_number" onchange="change_data_number()">
+                                    <option value="10">10条/页</option>
+                                    <option value="20">20条/页</option>
+                                    <option value="30">30条/页</option>
+                                    <option value="40">40条/页</option>
+                                    <option value="50">50条/页</option>
+                                </select>
+                            </label>
+                        </span>
+                        <span class="pages" id="previous">
+                            <i class="layui-icon layui_next_last" title="上一页">&#xe65a;</i>
+                        </span>
+                        <span class="pages" id="next">
+                            <i class="layui-icon layui_next_last" title="下一页">&#xe65b;</i>
+                        </span>
+                        <span>跳转到第 <input class="tag_jump_page_number" type="number" name="jump_page"> 页</span>
+                        <span  id="now_page_number">第1页</span>
+                        <span id="total_pages">总共{{ total_page }}页</span>
+                        <span id="all_count">合计{{ total_number }}条</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tag_add_server">
+            <div class="tag_content_shade" style="z-index: 19891014; background-color: rgb(0, 0, 0); opacity: 0.4;"></div>
+            <div class="tag_content_loading" style="z-index: 19891014;">
+                <i class="lay_loading_size layui-icon layui-anim layui-anim-rotate layui-anim-loop tag_loading_size">&#xe63d;</i>
+            </div>
+            <div id="jump_content" class="jump" style="z-index: 19891015;">
+                <div class="title_name_close_all">
+                    <div class="title_name_close" style="margin-left: 25px">添加服务器</div>
+                    <div class="title_name_close_01" style=""><i class="layui-icon">&#x1006;</i></div>
+                </div>
+                <div class="iframe_show">
+                    <iframe scrolling="auto" allowtransparency="true"  name="iframe_show" frameborder="0" src="/cmdb/add_servers_page/"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script src="/static/js/jquery-1.11.1/jquery-ui-min.js"></script>
+<script type="text/javascript">
+    page_number = 1; /*这里只能是要设置一个全局变量,因为以下函数都需要用到,这个变量非常重要*/
+    function change_data_number() {
+        $.ajax({
+            url:'/cmdb/platform_show_ajax/',
+            type:'post',
+            data:{
+                    'cur_page': 1,
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':'',
+                    'search_data':$("input[name='search_data']").val(),
+                },
+            error:function () {
+                console.log('查询失败');
+            },
+            success:function (data) {
+                page_number = 1;
+                var cleardatas = "";
+                for(var i=0;i<data['data_info'].length;i++){
+                    var alldatas = data['data_info'][i];
+                    cleardatas += '<tr>';
+                        cleardatas += '<td>'+'<input type="checkbox" name="tag_select" class="tag_table_input" data-name='+alldatas['project']+'>'+'</td>';
+                        cleardatas += '<td>'+alldatas['project']+'</td>';
+                        cleardatas += '<td>'+alldatas['desc']+'</td>';
+                        cleardatas += '<td>'+alldatas['servers_count']+'</td>';
+                    cleardatas += '<td class="td-change">' + '<button class="tag_button" id="edit_pla"><i class="layui-icon">&#xe642;</i>编辑</button>' + '<button class="tag_button tag_delete_data" name="del_one_data"><i class="layui-icon">&#xe640;</i>删除</button>' + '</td>';
+                    cleardatas += '</tr>';
+                }
+                $("#clears").empty().html(cleardatas);
+                $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                $("#now_page_number").empty().html('第'+page_number+'页');
+                $("#all_count").empty().html('合计'+data['total_number']+'条');
+            }
+        })
+    }
+    /*这里就是牛皮的翻页了*/
+    $(function () {
+        $('span').on('click', function () {
+            if($(this).attr('id')=='previous'){
+                page_number --;
+                if(page_number>0){
+                    console.log('one'+page_number);
+                    turn_page();
+                }
+                else{
+                    page_number = 1;
+                    console.log('two'+page_number);
+                    alert('别点了,翻完了.');
+                }
+            }
+            else if($(this).attr('id')=='next'){
+                page_number ++;
+                console.log('three'+page_number);
+                turn_page();
+            }
+        })
+    });
+    /*这里是翻页的核心函数*/
+    function turn_page() {
+        $.ajax({
+            url:'/cmdb/platform_show_ajax/',
+            type:'post',
+            data:{
+                'cur_page': page_number,
+                'change_page_number':$("#change_page_number").val(),
+                'jump_page':'',
+                'search_data':$("input[name='search_data']").val(),
+            },
+            error:function () {
+                console.log('翻页出错喽.');
+            },
+            success:function (data) {
+                if(data['total_pages'] == 1 && page_number>data['total_pages']){
+                    page_number = data['total_pages'];
+                    alert('别点了,翻完了.');
+                    return false;
+                }
+                else if(page_number>data['total_pages'] && data['total_pages'] != 1){
+                    page_number = data['total_pages'];
+                    alert('别点了,翻完了.');
+                    return false;
+                }
+                var cleardatas = "";
+                for(var i=0;i<data['data_info'].length;i++){
+                    var alldatas = data['data_info'][i];
+                    cleardatas += '<tr>';
+                        cleardatas += '<td>'+'<input type="checkbox" name="tag_select" class="tag_table_input" data-name='+alldatas['project']+'>'+'</td>';
+                        cleardatas += '<td>'+alldatas['project']+'</td>';
+                        cleardatas += '<td>'+alldatas['desc']+'</td>';
+                        cleardatas += '<td>'+alldatas['servers_count']+'</td>';
+                    cleardatas += '<td class="td-change">' + '<button class="tag_button" id="edit_pla"><i class="layui-icon">&#xe642;</i>编辑</button>' + '<button class="tag_button tag_delete_data" name="del_one_data"><i class="layui-icon">&#xe640;</i>删除</button>' + '</td>';
+                    cleardatas += '</tr>';
+                }
+                $("#clears").empty().html(cleardatas);
+                $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                $("#now_page_number").empty().html('第'+page_number+'页');
+                $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+        /*这里是提交页码*/
+        $($("input[name='jump_page']")).keypress(function (e) {
+            if(e.which == "13")
+                if($(this).val()){
+                    search_page($(this).val());
+                }
+                else{
+                    alert('请输入页码.');
+                }
+        });
+         /*提交查询内容*/
+        $($("input[name='search_data']")).keypress(function (e) {
+            if(e.which == "13")
+                if($(this).val()){
+                    turn_page();
+                }
+                else{
+                    alert('请输入查询内容.');
+                }
+        });
+        /*这里是提交页码后台返回的数据展示*/
+        function search_page(page) {
+            $.ajax({
+                url:'/cmdb/platform_show_ajax/',
+                type:'post',
+                data:{
+                    'cur_page': '',
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':page,
+                    'search_data':$("input[name='search_data']").val(),
+                },
+                error:function () {
+                    console.log('失败.')
+                },
+                success:function (data) {
+                    if($("input[name='jump_page']").val()>data['total_pages']){
+                        alert('好好看,哪有这么多页.');
+                        return false;
+                    }
+                    page_number = page;
+                    var cleardatas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td>'+'<input type="checkbox" name="tag_select" class="tag_table_input" data-name='+alldatas['project']+'>'+'</td>';
+                        cleardatas += '<td>'+alldatas['project']+'</td>';
+                        cleardatas += '<td>'+alldatas['desc']+'</td>';
+                        cleardatas += '<td>'+alldatas['servers_count']+'</td>';
+                        cleardatas += '<td class="td-change">' + '<button class="tag_button" id="edit_pla"><i class="layui-icon">&#xe642;</i>编辑</button>' + '<button class="tag_button tag_delete_data" name="del_one_data"><i class="layui-icon">&#xe640;</i>删除</button>' + '</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").empty().html(cleardatas);
+                    $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                    $("#now_page_number").empty().html('第'+page+'页');
+                    $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+
+        /*提交input框的值变化*/
+        $("#search").click(function () {
+            page_number = 1;
+            turn_page();
+        });
+    $(function () {
+        /*鼠标悬停改变td背景颜色*/
+        $(document).on('mouseenter','td',function () {
+            $(this).css('background-color','#f1f1f1');
+            $(this).siblings('td').css('background-color','#f1f1f1');
+        });
+        $(document).on('mouseleave','td',function(){
+            $(this).css('background-color','white');
+            $(this).siblings('td').css('background-color','white');
+        });
+
+        $("#select_all").click(function(){
+            if($(this).prop("checked")){
+                $("input[type='checkbox']").prop("checked",true);
+            }else{
+                $("input[type='checkbox']").prop("checked",false);
+            }
+        });
+        /*刷新当前页面*/
+        $("#flush_page").click(function () {
+             location.reload(true);
+        });
+        /*添加平台*/
+        $(document).on('click', '#tag_add_data_click', function(){
+            $('iframe').attr('src','/cmdb/add_platform/');
+            $('.title_name_close').html('添加平台');
+            $("#jump_content").show("puff");
+            $('.tag_content_shade').show(20);
+        });
+        /*修改平台信息*/
+        $(document).on('click', '#edit_pla', function(){
+            var data = $(this).parent().siblings(),
+                _return = function(i){
+                return data[i].innerHTML;
+                },
+            value = '?project='+_return(1)+'&desc='+_return(2);
+            $('iframe').attr('src','http://118.25.185.60/cmdb/edit_platform_page/'+value);
+            $('.title_name_close').html('编辑平台');
+            $("#jump_content").show("puff");
+            $('.tag_content_shade').show(20)
+        });
+
+         $(".title_name_close_01").click(function () {
+            $("#jump_content").hide("puff");
+            $('.tag_content_shade').hide(30)
+        });
+         /*批量删除平台*/
+         $("#del_selected").click(function () {
+             if ($("input[type='checkbox']:checked").length <= 0){
+                alert("都没勾选啊,兄弟!");
+                return false;
+            }
+             if(confirm("确定都删除吗?")){
+                 var server_list = new Array();
+                 $("input[type='checkbox']:checked").each(function () {
+                     if($(this).attr('data-name')!=undefined){
+                         server_list.push($(this).attr('data-name'));
+                     }
+                 });
+                 $.ajax({
+                     url:'/cmdb/deleteplas/',
+                     type:'post',
+                     data:{
+                            'del_data': JSON.stringify(server_list),
+                     },
+                    error:function () {
+                        console.log('失败');
+                    },
+                    success:function (data) {
+                        alert(data['status']);
+                    }
+                });
+             }
+         });
+        /*删除平台*/
+         $(document).on('click', 'button[name=\'del_one_data\']', function() {
+             if(confirm("确定删除吗?")){
+                 $.ajax({
+                     url:'/cmdb/deleteplas/',
+                     type:'post',
+                     data:{'del_data':JSON.stringify($(this).parent().siblings('td').eq(1).text())},
+                     error:function () {
+                         alert('删除失败.');
+                     },
+                     success:function (res) {
+                         alert(res['status']);
+                     }
+                })
+             }
+         });
+        /*限制指定div的移动范围*/
+        $(".jump").draggable({ containment: ".tag_content_shade", scroll: false});
+        /*前后端交互*/
+        $("button[name='action']").click(function(){
+            var action = $(this).attr('id');
+            var content = $(this).text();
+            if ($("input[type='checkbox']:checked").length <= 0){
+                alert("都没勾选啊,兄弟!");
+                return false;
+            }
+
+            if (confirm("确定"+content+"吗?")){
+                $("input[name='tag_select']:checked").each(function(){
+                    if($(this).attr('data-name')!=undefined && action!='update_package'){
+                        var update_value = "?project="+$(this).attr('data-name')+"&action="+action;
+                        var update_cmd = "http://118.25.185.60/cmdb/platform_action/"+update_value;
+                        window.open(update_cmd);
+                    }
+                });
+            }
+        });
+    });
+</script>
+</html>

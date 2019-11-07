@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>权限设置</title>
+    <link rel="stylesheet" href="/static/css/layui-v2.5.4/layui/css/layui.css">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html{
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body{
+            width: 100%;
+            min-height: 100%;
+            background: #f1f1f1;
+        }
+        .tag_body{
+            position: relative;
+            padding: 20px;
+            margin: 0 auto;
+        }
+        .tag_content>*{
+            padding: 15.5px;
+        }
+        .tag_permission{
+            position: relative;
+            background-color: #fff;
+            width: 100%;
+            height: 100%;
+            display: block;
+            box-sizing: border-box;
+            border-radius: 2px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+        }
+        .tag_hide_user{
+            position: relative;
+            height: 25px;
+            line-height: 24px;
+            width: 25px;
+            top: -5px;
+            right: 9px;
+            float: right;
+            border-radius: 3px;
+            background-color: #dea126;
+            cursor: pointer;
+        }
+        .tag_hide_user:hover{
+            background-color: #de842b;
+        }
+        .tag_hide_user i{
+            padding: 0 5px;
+            color: #fff;
+        }
+        .tag_admin_user{
+            display: none;
+            position: relative;
+            box-sizing: border-box;
+            width: 100%;
+            height: 60px;
+            border-radius: 2px;
+            margin: 31px 0;
+            background-color: #f1f1f1;
+        }
+        .tag_select_public{
+            display: inline-block;
+        }
+        .tag_select_public select {
+            width: 100px;
+            height: 26px;
+            border-radius: 3px;
+        }
+        .tag_select_public{
+            padding: 16px 27px;
+        }
+        .tag_select_fons{
+            padding-left: 20px;
+            margin-left: 10px;
+        }
+        .tag_per_title{
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 13px;
+            padding: 10px 11px;
+            border-width: 0 0 1px 0;
+            border-style: solid;
+            border-color: #f1f1f1;
+        }
+        .tag_user_type{
+            display: none;
+            position: absolute;
+            left: 242px;
+            top: 70px;
+            width: 47px;
+            height: 27px;
+            line-height: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: #4caf50;
+        }
+        .lay_i_up{
+            display: block;
+            transform:rotate(180deg);
+            -ms-transform:rotate(180deg);
+            -moz-transform:rotate(180deg);
+            -webkit-transform:rotate(180deg);
+            -o-transform:rotate(180deg);
+            transition:-webkit-transform 0.7s;
+            -webkit-transition:-webkit-transform 0.7s;
+        }
+        .lay_i_down{
+            display: block;
+            transform:rotate(0deg);
+            -ms-transform:rotate(0deg); /* Internet Explorer */
+            -moz-transform:rotate(0deg); /* Firefox */
+            -webkit-transform:rotate(0deg); /* Safari 和 Chrome */
+            -o-transform:rotate(0deg); /* Opera */
+            transition:-webkit-transform 0.7s;
+            -webkit-transition:-webkit-transform 0.7s; /* Safari */
+        }
+        .tag_per_title_button{
+            border-width: 0 0 0 0;
+            border-style: solid;
+            border-color: #f1f1f1;
+        }
+        .tag_lay_icon_ok{
+            width: 20px;
+            height: 19px;
+            display: inline-block;
+        }
+        .tag_lay_icon_ok i{
+            padding: 1px 1px;
+            text-align: center;
+            width: 16px;
+            height: 15px;
+            line-height: 17px;
+            font-size: 12px;
+            border-radius: 2px;
+            color: #f1f1f1;
+            border: 1px solid #d2d2d2;
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+        .tag_per_select{
+            display: inline-block;
+            padding: 13px 16px;
+        }
+        .tag_per_select input{
+            display: none;
+        }
+        .tag_per_children02{
+            margin-top: 53px;
+        }
+        .tag_children_name{
+            display: inline-block;
+        }
+        .tag_per_group{
+            margin-bottom: 11px;
+        }
+        .tag_per_children_title{
+            display: inline-block;
+        }
+        .tag_on_off{
+            display: inline-block;
+            float: right;
+            margin-top: -5px;
+            height: 23px;
+            line-height: 22px;
+            width: 50px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid #d2d2d2;
+            background-color: #fff;
+        }
+        .tag_on_off i{
+            position: absolute;
+            right: 41px;
+            top: 9px;
+            width: 16px;
+            height: 16px;
+            border-radius: 20px;
+            background-color: #d2d2d2;
+            transition: .1s linear;
+
+        }
+        .tag_per_save{
+            height: 31px;
+            line-height: 32px;
+            padding: 0 18px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            border: none;
+            font-size: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .tag_per_save:hover{
+            background-color: #439695;
+        }
+    </style>
+</head>
+<body>
+    <div class="tag_body">
+        <div class="tag_content">
+            <div class="tag_permission">
+                <div class="tag_hide_user" title="用户展示">
+                    <i class="layui-icon" data-name="down">&#xe61a;</i>
+                </div>
+                <div class="tag_admin_user">
+                    <div class="tag_select_public">
+                        <strong>组权限</strong>
+                        <select  class="tag_select_fons" onchange="show_every_user_perms()">
+                            {% for i in all_groups %}
+                            <option name="groups">{{ i.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="tag_user_type" id="usertype"></div>
+                <div class="tag_per_group tag_per_children02">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>机器管理</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_machine_manage">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_machine_manage" data-name="cmdb_machine_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_machine_manage_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">机器管理</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_machine_operating" data-name="cmdb_machine_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_machine_operating_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">机器操作</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_machine_status" data-name="cmdb_machine_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_machine_status_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">机器状态</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>平台管理</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_platform_manage">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_platform_manage" data-name="cmdb_platform_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_platform_manage_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">平台管理</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_platform_operating" data-name="cmdb_platform_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_platform_operating_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">平台操作</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_platform_update" data-name="cmdb_platform_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_platform_update_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">前台更新</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>日志管理</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_log_manage">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_log_manage" data-name="cmdb_log_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_log_manage_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">日志管理</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_log_operating" data-name="cmdb_log_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_log_operating_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">操作日志</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_log_web" data-name="cmdb_log_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_log_web_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">web日志</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>用户管理</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_user_manage">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_user_manage" data-name="cmdb_user_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_user_manage_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">用户管理</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_user_operating" data-name="cmdb_user_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_user_operating_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">用户操作</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_permission_set" data-name="cmdb_user_manage">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_permission_set_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">权限设置</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>缓存清除</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_cache_clear">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_cache_clear" data-name="cmdb_cache_clear">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_cache_clear_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">缓存清除</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_cache_clear02" data-name="cmdb_cache_clear">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_cache_clear02_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">清缓存</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title">
+                        <div class="tag_per_children_title">
+                            <strong>平台api</strong>
+                        </div>
+                        <div class="tag_on_off" data-name="off" id="cmdb_api">
+                            <i></i>
+                        </div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_api" data-name="cmdb_api">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_api_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">平台api</div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_api02" data-name="cmdb_api">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="cmdb_api02_i">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name">api文档</div>
+                    </div>
+                </div>
+                <div class="tag_per_group">
+                    <div class="tag_per_title tag_per_title_button">
+                        <button type="button" class="tag_per_save" id="permi_button">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script src="/static/js/jquery-1.11.1/jquery-ui-min.js"></script>
+<script src="/static/js/jquery-1.11.1/jquery-color-master/jquery.color.js"></script>
+<script src="/static/js/jquery-1.11.1/jquery-color-master/jquery.color.svg-names.js"></script>
+<script type="text/javascript">
+    /*这里选择查看对应用户的权限*/
+    function show_every_user_perms() {
+        $("input[type='checkbox']:checked").each(function () {
+            if($(this).prop("checked")){
+                $(this).prop("checked", false);
+            }
+        });
+        $('.tag_on_off').css({'border': '1px solid #d2d2d2', 'background-color': '#fff'});
+        $('.tag_on_off').children().css({'background-color': '#d2d2d2', 'right': '41px'});
+        $('.tag_lay_icon_ok').children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
+        $('.tag_on_off').attr('data-name', 'off');
+        $.ajax({
+            url: '/cmdb/gcheckperm/',
+            type: 'post',
+            data: {'groups': $("option[name='groups']:selected").val()},
+            error: function () {
+                console.log('fail');
+            },
+            success: function (res) {
+                for(var i=0;i<=res['user_perms'].length;i++){
+                    var perms_name = res['user_perms'][i];
+                    if(perms_name!=undefined){
+                        $("input[value="+perms_name+"]").prop("checked", true);
+                        $('i[data-name='+ perms_name +'_i]').css({'background-color': '#5FB878', 'border-color': '#5FB878'});
+                        $('div[id='+ perms_name +']').css({'border': '1px solid #449d44', 'background-color': '#449d44'});
+                        $('div[id='+ perms_name +']').children().css({'background-color': '#fff', 'right': '17px'});
+                        $('div[id='+ perms_name +']').attr('data-name', 'on');
+                        $("#usertype").empty().html(res['user_type']).show("explode");
+                    }
+                }
+            }
+        })
+    }
+    /*这里是添加删除权限*/
+    $(function() {
+        $("#permi_button").click(function () {
+            var permi_list = new Array();
+            $("input[type='checkbox']:checked").each(function () {
+                permi_list.push($(this).val());
+            });
+            console.log(permi_list);
+            console.log($("option[name='groups']:selected").val());
+            $.ajax({
+                url: '/cmdb/geditpermi/',
+                type: 'post',
+                data: {'content': JSON.stringify(permi_list), 'groups': $("option[name='groups']:selected").val()},
+                error: function () {
+                    console.log('failed.');
+                },
+                success: function (res) {
+                    alert(res['status']);
+                }
+            });
+        });
+        /*这里是单选权限的开关*/
+        $('.tag_lay_icon_ok').click(function () {
+            if ($(this).siblings().prop('checked')){
+                $(this).children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
+                $(this).siblings().prop('checked', false);
+                var tar_name = $(this).siblings().val();
+                $("div[id="+ tar_name +"]").css({'border': '1px solid #d2d2d2', 'background-color': '#fff'});
+                $("div[id="+ tar_name +"]").children().css({'background-color': '#d2d2d2', 'right': '41px'});
+                $("div[id="+ tar_name +"]").attr('data-name', 'off');
+            }
+            else{
+                $(this).children().css({'background-color': '#5FB878', 'border-color': '#5FB878'});
+                $(this).siblings().prop('checked', true);
+                var tar_name = $(this).siblings().val();
+                $("div[id="+ tar_name +"]").css({'border': '1px solid #449d44', 'background-color': '#449d44'});
+                $("div[id="+ tar_name +"]").children().css({'background-color': '#fff', 'right': '17px'});
+                $("div[id="+ tar_name +"]").attr('data-name', 'on');
+            }
+        });
+    $('.tag_hide_user').click(function () {
+        $('.tag_admin_user').slideToggle("slow");
+        var get_dec = $(this).children().attr('data-name');
+        if (get_dec=='down'){
+            $(this).children().removeClass('lay_i_down');
+            $(this).children().addClass('lay_i_up');
+            $(this).children().attr('data-name', 'up');
+            $.ajax({
+                url: '/cmdb/gcheckperm/',
+                type: 'post',
+                data: {'groups': $("option[name='groups']:selected").val()},
+                error: function () {
+                   console.log('fail');
+                },
+                success: function (res) {
+                    for(var i=0;i<=res['user_perms'].length;i++){
+                        var perms_name = res['user_perms'][i];
+                        $("input[value="+perms_name+"]").prop("checked", true);
+                        $('i[data-name='+ perms_name +'_i]').css({'background-color': '#5FB878', 'border-color': '#5FB878'});
+                        $('div[id='+ perms_name +']').css({'border': '1px solid #449d44', 'background-color': '#449d44'});
+                        $('div[id='+ perms_name +']').children().css({'background-color': '#fff', 'right': '17px'});
+                        $('div[id='+ perms_name +']').attr('data-name', 'on');
+                        $("#usertype").empty().html(res['user_type']).show("explode");
+                    }
+                }
+            });
+        }
+        else{
+            $(this).children().removeClass('lay_i_up');
+            $(this).children().addClass('lay_i_down');
+            $(this).children().attr('data-name', 'down');
+            $('.tag_on_off').css({'border': '1px solid #d2d2d2', 'background-color': '#fff'});
+            $('.tag_on_off').children().css({'background-color': '#d2d2d2', 'right': '41px'});
+            $('.tag_on_off').attr('data-name', 'off');
+            var per_item = $('.tag_on_off').attr('id');
+            $('input[data-name='+ per_item +']').prop("checked", false);
+            $('input[data-name='+ per_item +']').siblings().children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
+
+            $('.tag_lay_icon_ok').children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
+            $('.tag_lay_icon_ok').siblings().prop('checked', false);
+            var tar_name = $('.tag_lay_icon_ok').siblings().val();
+            $("div[id="+ tar_name +"]").css({'border': '1px solid #d2d2d2', 'background-color': '#fff'});
+            $("div[id="+ tar_name +"]").children().css({'background-color': '#d2d2d2', 'right': '41px'});
+            $("#usertype").hide("explode");
+        }
+    });
+
+    /*这里是各权限的开关*/
+    $('.tag_on_off').on('click',function () {
+        if($(this).attr('data-name')=='on'){
+            $(this).css({'border': '1px solid #d2d2d2', 'background-color': '#fff'});
+            $(this).children().css({'background-color': '#d2d2d2', 'right': '41px'});
+            $(this).attr('data-name', 'off');
+            var per_item = $(this).attr('id');
+            $('input[data-name='+ per_item +']').prop("checked", false);
+            $('input[data-name='+ per_item +']').siblings().children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
+        }
+        else {
+            $(this).css({'border': '1px solid #449d44', 'background-color': '#449d44'});
+            $(this).children().css({'background-color': '#fff', 'right': '17px'});
+            $(this).attr('data-name', 'on');
+            var per_item = $(this).attr('id');
+            $('input[data-name='+ per_item +']').prop("checked", true);
+            $('input[data-name='+ per_item +']').siblings().children().css({'background-color': '#5FB878', 'border-color': '#5FB878'});
+        }
+    });
+    });
+</script>
+</html>

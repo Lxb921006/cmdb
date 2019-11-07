@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户添加</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html{
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body{
+            width: 100%;
+            min-height: 100%;
+            background: #f1f1f1;
+        }
+        .tag_content{
+            position: relative;
+            padding: 12px;
+            margin: 0 auto;
+        }
+        .tag_body input{
+            border-radius: 3px;
+            margin: 5px;
+            height: 26px;
+            width: 189px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            text-align: center;
+        }
+        .tag_body select{
+            border-radius: 3px;
+            margin: 5px;
+            height: 26px;
+            width: 189px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e6e6e6;
+            text-align: center;
+        }
+        .tag_body button{
+            border-radius: 3px;
+            margin: 0 67px;
+            height: 28px;
+            width: 65px;
+            background-color: #009688;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            font-size: 12px;
+        }
+        .tag_body button:hover{
+            background-color: #54968a;
+        }
+        .tag_body{
+            height: 376px;
+            padding: 21px 35px;
+            background: #f1f1f1;
+        }
+        .tag_content{
+            margin-bottom: 4px;
+            margin-left: 13px;
+        }
+        .tag_info{
+            position: relative;
+            font-size: 12px;
+            margin: 0 0;
+        }
+        .tag_user_input{
+            display: inline-block;
+            padding: 0 6px;
+        }
+        .tag_select{
+            padding: 0 60px;
+        }
+        .tag_passwd{
+            margin: 0 3px;
+        }
+        .tag_red{
+            color: red;
+        }
+        .tag_passwd{
+            margin-left: -11px;
+        }
+    </style>
+</head>
+<body>
+     <div class="tag_content">
+        <div class="tag_body">
+            <div class="tag_content">
+                <label class="tag_info">
+                    <span class="tag_red">*</span>用户
+                </label>
+                <div class="tag_user_input">
+                    <input type="text" id="username">
+                </div>
+            </div>
+            <div class="tag_content tag_passwd">
+                <label class="tag_info">
+                    <span class="tag_red">*</span>用户类型
+                </label>
+                <div class="tag_user_input">
+                    <select class="tag_select">
+                    {% for i in groups %}
+                        <option name="groups" value="{{ i.name }}">{{ i.name }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="tag_content">
+                <label class="tag_info">
+                    <span class="tag_red">*</span>邮箱
+                </label>
+                <div class="tag_user_input">
+                    <input type="email" id="email">
+                </div>
+            </div>
+            <div class="tag_content">
+                <label class="tag_info">
+                    <span class="tag_red">*</span>密码
+                </label>
+                <div class="tag_user_input">
+                    <input type="password" id="password">
+                </div>
+            </div>
+            <div class="tag_content tag_passwd">
+                <label class="tag_info">
+                    <span class="tag_red">*</span>确认密码
+                </label>
+                <div class="tag_user_input">
+                    <input type="password" id="re_password">
+                </div>
+            </div>
+            <div class="tag_content tag_passwd">
+                <button type="button" id="addusers">添加用户</button>
+                <button type="button" id="change_passwd" style="margin: 0 -12px;">保存编辑</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+    /*用户的公共函数*/
+    function add_change_user(action, user, email, user_type, password){
+        $.ajax({
+            url:'/cmdb/add_del_edit_user/',
+            type:'post',
+            data:{
+                'action': action,
+                'username': user,
+                'email': email,
+                'usertype': user_type,
+                'password': password,
+            },
+            error:function () {
+                console.log('failed.');
+            },
+            success:function (res) {
+                alert(res['status']);
+            }
+        })
+    }
+
+    $(function () {
+        /*添加用户*/
+        $("#addusers").on('click', function () {
+            var input_list = new Array();
+            $(".tag_user_input input").each(function () {
+                if($(this).val()){
+                    input_list.push($(this).val());
+                }
+            });
+            if(input_list.length!=4){
+                alert("都填上.");
+                return false;
+            }
+            var user = $("#username").val();
+            var password = $("#password").val();
+            var re_password = $("#re_password").val();
+            var email = $("#email").val();
+            var user_type = $("option[name='groups']:selected").val();
+            if (password!=re_password){
+                alert("密码不一致");
+                return false;
+            }
+            console.log(user);
+            add_change_user('add_user', user, email, user_type, re_password)
+        });
+
+        /*填充接收的用户名和邮箱*/
+        var value = location.search;
+        value = value.substr(1).split('&');
+        for(var i=0;i<=value.length;i++){
+            if(value[i]!=undefined){
+                var val = value[i].split('=');
+                $('input').each(function () {
+                    if($(this).attr('id')==val[0]){
+                        $(this).val(val[1]);
+                    }
+                })
+            }
+        }
+
+        /*修改密码*/
+        $("#change_passwd").on('click', function () {
+            var input_list = new Array();
+            $(".tag_user_input input").each(function () {
+                if($(this).val()){
+                    input_list.push($(this).val());
+                }
+            });
+            if(input_list.length!=4){
+                alert("都填上.");
+                return false;
+            }
+            var user = $("#username").val();
+            var password = $("#password").val();
+            var re_password = $("#re_password").val();
+            var email = $("#email").val();
+            var user_type = $("option[name='groups']:selected").val();
+            if (password!=re_password){
+                alert("密码不一致");
+                return false;
+            }
+            add_change_user('change_password', user, email, user_type, re_password)
+        });
+    });
+
+
+
+</script>
+</html>

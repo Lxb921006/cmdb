@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>版本热更</title>
+    <style>
+        body,html{
+            margin: 0;
+            padding: 0;
+        }
+        .update_title{
+            border-bottom: 1px solid #dcdfe6;
+        }
+        .update_content{
+            margin-top: 8px;
+        }
+        .update_content input{
+            height: 30px;
+            width: 150px;
+            border: 1px solid #dcdfe6;
+            border-radius: 5px;
+        }
+        .update_content button{
+            height: 33px;
+            width: 74px;
+            cursor: pointer;
+            color: whitesmoke;
+            background-color: #609d67;
+            border-left: 1px solid #bbbbbb;
+            border-right: 1px solid #bbbbbb;
+            border-top: 1px solid #bbbbbb;
+            border-bottom: 1px solid #bbbbbb;
+            border-radius: 5px;
+            box-shadow: 0 1px 12px #bbbbbb;
+        }
+        .update_content button:hover{
+            background-color: green;
+        }
+        .item_name{
+            margin-top: 8px;
+            border-top: 1px solid #dcdfe6;
+        }
+        .item_name textarea{
+            margin-top: 22px;
+            margin-left: 7px;
+            height: 310px;
+            width: 229px;
+        }
+        .search_area {
+            margin-top: 30px;
+        }
+        .search_area input{
+            height: 30px;
+            width: 150px;
+            margin-left: 142px;
+            border: 1px solid #dcdfe6;
+            border-radius: 5px;
+        }
+        table{
+            width: 82%;
+            height: 10%;
+            margin-top:5px;
+            margin-left:142px;
+            border-collapse: collapse;
+            border: 1px solid #627280;
+        }
+        tr,th,td{
+            height:30px;
+            width:6%;
+            text-align:center;
+            border: 1px solid #EBEBEB;
+            font-size: 14px;
+        }
+        td{
+            background-color: white;
+        }
+        th{
+            background-color: ghostwhite;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="update_title">
+            <h3>客户端版本更新</h3>
+        </div>
+        <div class="update_content">
+            <label>
+                <input type="text" id="click_content" placeholder="项目名" name="package_name">
+                <button type="button" value="update_version" name="actions">提交</button>
+            </label>
+        </div>
+        <div class="item_name">
+            <div class="search_area">
+                <input type="text"  name="search_data" placeholder="搜索">
+            </div>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>项目</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clears">
+                    {% for item in data %}
+                        <tr>
+                            <td class="select_first_td">{{ item.project }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+
+    /*搜索返回的数据填充到表格*/
+    function turn_page() {
+        $.ajax({
+            url:'/hot_fix_find_platform/',
+            type:'post',
+            data:{
+                'search_data':$("input[name='search_data']").val(),
+            },
+            error:function () {
+                console.log('失败');
+            },
+            success:function (data) {
+                var cleardatas = "";
+                for(var i=0;i<data['data_info'].length;i++){
+                    var alldatas = data['data_info'][i];
+                    cleardatas += '<tr>';
+                    cleardatas += '<td class="select_first_td">'+alldatas['project']+'</td>';
+                    cleardatas += '</tr>';
+                }
+                $("#clears").empty().html(cleardatas);
+            }
+        })
+    }
+
+    /*实时的监控input的值*/
+    $("input[name='search_data']").on('input propertychange', function () {
+        turn_page();
+    });
+
+    /*鼠标悬停在tr整行变色*/
+        $(function () {
+            $(document).on('mouseenter','td',function () {
+                $(this).css('background-color','#F6FAFF');
+                $(this).siblings('td').css('background-color','#F6FAFF');
+            });
+            $(document).on('mouseleave','td',function(){
+                $(this).css('background-color','white');
+                $(this).siblings('td').css('background-color','white');
+            });
+        });
+
+    /*点击表格任意行自动填充*/
+    $(function () {
+        $(document).on('click','.select_first_td',function () {
+            var content =  $(this).text();
+            $("#click_content").val(content);
+        })
+    });
+
+    /*这里是跟服务器实时交互*/
+        $(function(){
+            $("button[name='actions']").click(function(){
+                if ($("input[name='package_name']").val()==''){
+                    alert("更新的项目要填上，兄弟");
+                    return false;
+                }
+                if (confirm("确定操作吗?")){
+                    var param = $("button[name='actions']").attr('value');
+                    var project = $("input[name='package_name']").val();
+                    var cmd = "http://127.0.0.1:8000/client_update/?values="+project+'/'+param;
+                    window.open(cmd);
+                    }
+                });
+            });
+</script>
+</html>

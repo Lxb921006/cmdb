@@ -1,0 +1,243 @@
+body,html{
+    margin:0;
+    padding:0;
+}
+.div_change_1{
+    height:55px;
+    background: #333231;
+    color: #ebebf5;
+}
+.div_change_3{
+    height:839px;
+    width: 175px;
+    float: left;
+    background: #f5f2f2;
+    text-align: center;
+/*    border-right: 2px solid #d0cbcb;   */
+}
+.div_change_4{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.div_change_5{
+    clear:both;
+    background: #ebebf5;
+    font-size: 14px;
+    text-align: center;
+    color: black;
+}
+.div_button{
+    height: 156px;
+    width: 46%;
+    margin-left: 445px;
+    border:2px solid #ddd;
+}
+.div_change_6{
+    margin-top: 10px;
+    width: 40%;
+    font-size: 13px;
+    margin-left: 6%;
+}
+.div_change_7{
+    position: absolute;
+    display: block;
+    margin-left: 48%;
+    top: 747px;
+}
+.div_page{
+    margin-left: 13%;
+}
+.div_select{
+    margin-left: 12%;
+}
+.input_change{
+    position: absolute;
+    left:31%;
+    width:50px;
+    height:30px;
+    background:green;
+}
+.div_input_change_1{
+    position: absolute;
+    top: 267px;
+    left: 430px;
+    display: block;
+}
+.h3_change{
+    color: #ebebf5;
+    text-align:left;
+    margin: 0;
+    padding-top:19px;
+    padding-left:2%;
+}
+p{
+    margin-top:20px;
+}
+table{
+    width: 72%;
+    height: 10%;
+    margin-top:5px;
+    margin-left:79px;
+    border-collapse: collapse;
+    border: 1px solid #777777;
+}
+tr,th,td{
+    height:24px;
+    width:6%;
+    text-align:center;
+    border: 1px solid #f5f2f2;
+    font-size: 14px;
+}
+td{
+    background-color: darkgrey;
+}
+th{
+    background-color: #5599FF;
+}
+.ul_change{
+    margin-top:0;
+    padding-left:0;
+    list-style-type: none;
+}
+.ul_change_1{
+    display:block;
+  /*padding-left:0;
+    margin-bottom:-6px;
+    padding-top:6px; */
+    list-style-type: none;
+}
+.a_change{
+	font-weight:900;
+	color: #627280;
+    text-decoration:none;
+}
+.a_change_1{
+    color: #00b4ef;
+    text-decoration:none;
+}
+.a_change_2{
+    margin-left: 96%;
+    top: 21px;
+    font-size: 14px;
+    position: absolute;
+    text-decoration:none;
+    color: #ebebf5;
+}
+.welcome_user{
+    margin-left: 91%;
+    top: 0;
+    font-size: 18px;
+    position: absolute;
+    text-decoration:none;
+    color: #c7c7cc;
+}
+.li_change{
+/*    border:0 solid #ebebf5;
+    padding-top:6px;
+    padding-bottom:6px;
+    box-shadow: 0 1px 3px #bbb;
+    list-style-type:none */
+    padding-top: 1px;
+}
+.li_change_1{
+    font-size: 12px;
+    padding: 4px;
+    margin-right: 44px;
+    list-style-type:none
+}
+
+
+.action-button{
+    margin-top: 10px;
+    margin-left: 20px;
+    width: 100px;
+    background: #1E90FF;
+    cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+    outline: none;
+    color: white;
+}
+.action-button_1 {
+    width: 100px;
+    background: #1E90FF;
+    cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+    color: white;
+}
+
+.action-button:hover { /* 鼠标移入按钮范围时改变颜色 */
+	        background: #5599FF;
+}
+.action-button_1:hover { /* 鼠标移入按钮范围时改变颜色 */
+	        background: #5599FF;
+}
+#Pageing A{
+        background-color:#5599FF;
+        border:1px solid White;
+        text-decoration:none;
+        color:White;
+        font-size: 12px;
+        text-align: center;
+        padding:.1em .6em .2em .6em;
+}
+#Pageing A.selected {
+    background-color:#AA7700;
+}
+#page_info A.selected {
+    background-color: #AA7700;
+}
+.show_load_content{
+    padding-left: 100px;
+    height: 200px;
+    width: 49%;
+}
+
+.ifame_show{
+    width: 700px;
+    height: 300px;
+    margin-left: 50px;
+}
+
+.platform_show{
+    margin-left: 14%;
+}
+
+.server_show{
+    margin-left: 14%;
+}
+
+.record_log{
+    margin-top: 10%;
+    margin-left: 15%;
+}
+
+.page_record_log{
+    margin-top: 10px;
+    width: 55%;
+    font-size: 13px;
+    margin-left: 6%;
+}
+
+.check_record_log_css{
+    position: absolute;
+    top: 1%;
+    margin-left: 1%;
+}
+
+.check_record_button{
+    border:1px #5599FF solid;
+    width: 55px;
+    height: 25px;
+    background: #5599FF;
+}
+.change_border_type{
+    height: 28px;
+    cursor: pointer;
+    padding-left: 0;
+    padding-top: 8px;
+    background-color: whitesmoke;
+    box-shadow: 1px 2px 4px #bbb;
+}
+.format_li{
+    margin-left: 3px;
+}

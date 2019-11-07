@@ -1,0 +1,1440 @@
+from django.shortcuts import render
+from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.shortcuts import render, redirect, render_to_response
+from django.core.urlresolvers import reverse
+from django.template import Template, Context
+from django.template.loader import get_template
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from dwebsocket.decorators import accept_websocket, require_websocket
+from django.contrib.auth.decorators import permission_required
+from cmdbs.models import Userinfos
+from cmdbs.models import Servers
+from cmdbs.models import record_log
+from cmdbs.models import Item
+from cmdbs import public_method
+from cmdbs import common
+from django.db.models import Q
+import json
+import redis
+import os
+import hashlib
+import time
+import datetime
+import socket
+import ftplib
+import paramiko
+from django.contrib.auth.models import Permission, User, Group
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.admin.options import get_content_type_for_model
+# Create your views here.
+
+
+@csrf_exempt
+def is_login(request):
+    errors = {'error': ''}
+    if request.method == 'POST':
+        username = request.POST.get('username', None)
+        password = request.POST.get('passwd', None)
+        code = request.POST.get('code', None)
+        users = authenticate(username=username, password=password)
+        if users is not None:
+            if users.is_active:
+                login(request, users)
+                public_method.Opratings_log(
+                                            request.user,
+                                            'login',
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            )
+                return redirect(reverse('cmdb:index'))
+
+            else:
+                errors['error'] = 'username or password error.'
+        else:
+            errors['error'] = 'please input username or password.'
+    return render(request, 'cmdbs/login_main.html', errors)
+
+
+@csrf_exempt
+def send_verification_code(request):
+    if request.method == 'POST':
+        user = request.POST.get('user', None)
+        check_user = User.objects.filter(username=user).count()
+        if check_user == 1:
+            user_mail = User.objects.filter(username=user).values('email')
+            public_method.sendmail(user, user_mail[0].get('email'))
+        else:
+            return JsonResponse({'msg': -1})
+        return JsonResponse({'msg': 'success'})
+
+
+@login_required(login_url='/cmdb/is_login/')
+def index(request):
+    return render(request, 'cmdbs/index_change.html', {'login_user': request.user})
+
+
+@login_required(login_url='/cmdb/is_login/')
+def home(request):
+    return render(request, 'cmdbs/home.html', {'login_user': request.user})
+
+
+def is_logout(request):
+    public_method.Opratings_log(request.user,
+                              "logout",
+                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              )
+    logout(request)
+    return HttpResponseRedirect(reverse('cmdb:login'))
+
+
+@login_required(login_url='/cmdb/is_login/')
+def notice(request):
+    return HttpResponse('not permissions.')
+
+
+@login_required(login_url='/cmdb/is_login/')
+def platform_base_page(request):  # 基础数据展示
+    server_project_list = list()
+    platform_project_list = list()
+    server = Servers.objects.values("project")
+    platforms = Item.objects.values("project")
+    for p_item in platforms:
+        p_item_name = p_item
+        platform_project_list.append(p_item_name.get('project', None))
+    for item in server:
+        project_all = item
+        server_project_list.append(project_all.get('project', None))
+    for project_name in set(server_project_list):
+        flag = 0
+        for all_project in server_project_list:
+            if project_name == all_project:
+                flag += 1
+        if project_name in platform_project_list:
+            p_count_res = Item.objects.filter(project=project_name).values('servers_count')
+            if p_count_res[0].get('servers_count') != flag:
+                Item.objects.filter(project=project_name).update(servers_count=flag)
+        else:
+            add_p = Item(
+                project=project_name,
+                desc='game',
+                servers_count=flag
+            )
+            add_p.save()
+    all_record_log_data = Item.objects.all()[0:10]
+    total_number = Item.objects.all().count()
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0] + 1
+    msg = {'data_info': all_record_log_data,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/cmdb_platform_oprations.html', msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+def package_update(request):  # 基础数据展示
+    server_project_list = list()
+    platform_project_list = list()
+    server = Servers.objects.values("project")
+    platforms = Item.objects.values("project")
+    for p_item in platforms:
+        p_item_name = p_item
+        platform_project_list.append(p_item_name.get('project', None))
+    for item in server:
+        project_all = item
+        server_project_list.append(project_all.get('project', None))
+    for project_name in set(server_project_list):
+        flag = 0
+        for all_project in server_project_list:
+            if project_name == all_project:
+                flag += 1
+        if project_name in platform_project_list:
+            p_count_res = Item.objects.filter(project=project_name).values('servers_count')
+            if p_count_res[0].get('servers_count') != flag:
+                Item.objects.filter(project=project_name).update(servers_count=flag)
+        else:
+            add_p = Item(
+                project=project_name,
+                desc='game',
+                servers_count=flag
+            )
+            add_p.save()
+    all_record_log_data = Item.objects.all()[0:10]
+    total_number = Item.objects.all().count()
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0] + 1
+    msg = {'data_info': all_record_log_data,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/cmdb_package_update.html', msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def platform_img(request):
+    projects = request.POST.get('data', None)
+    platforms_list = []
+    servers_number_list = []
+    all_datas = []
+    project = Item.objects.values(projects)
+    for i in project:
+        project_name = i.get('project', None)
+        server_object = Item.objects.filter(project=project_name).values('servers_count')
+        server_number = server_object[0].get('servers_count')
+        datas = {'value': server_number, 'name': project_name}
+        all_datas.append(datas)
+        platforms_list.append(project_name)
+        servers_number_list.append(server_number)
+    return JsonResponse({'platform_name': platforms_list, 'platform_number': servers_number_list, 'all_data': all_datas})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def platform_show_ajax(request):
+    recv_cur_page_number = request.POST.get('cur_page', None)
+    recv_change_page_number = request.POST.get('change_page_number', None)
+    search_data = request.POST.get('search_data', None)
+    jump_page = request.POST.get('jump_page', None)
+    change_page_number = common.try_int(recv_change_page_number, 10)
+    recv_cur_page_number = common.try_int(recv_cur_page_number, 1)
+    data_list = list()
+    show_datas = None
+    all_datas_count = None
+    pages = None
+    if all([recv_cur_page_number, recv_change_page_number]):
+        all_datas_count = Item.objects.filter(Q(project__icontains=search_data) |
+                                              Q(desc__icontains=search_data)
+                                              ).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Item.objects.filter(Q(project__icontains=search_data) |
+                                         Q(desc__icontains=search_data))[
+                     real_cur_page_number:real_change_page_number]
+    if all([jump_page, recv_change_page_number]):
+        all_datas_count = Item.objects.filter(Q(project__icontains=search_data) |
+                                              Q(desc__icontains=search_data)).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Item.objects.filter(Q(project__icontains=search_data) |
+                                         Q(desc__icontains=search_data))[
+                     real_cur_page_number:real_change_page_number]
+
+    for item in range(len(show_datas)):
+        data_list.append({"project": show_datas[item].project,
+                          "desc": show_datas[item].desc,
+                          "servers_count": show_datas[item].servers_count,
+                          })
+    return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages})
+
+
+# 添加平台
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def add_platform(request):
+    if request.method == 'POST':
+        server_info = request.POST.get('data', None)
+        msg = {'status': 'success'}
+        if not isinstance(json.loads(server_info), list):
+            msg['status'] = 'add platform failure.'
+        else:
+            project, desc = json.loads(server_info)
+            try:
+                check = Item.objects.filter(project=project).count()
+            except:
+                msg['status'] = 'check mysql failed.'
+            else:
+                if check == 0:
+                    try:
+                        add_platforms = Item(project=project, desc=desc, servers_count=0)
+                        add_platforms.save()
+                    except:
+                        msg['status'] = '%s already exists.' % project
+                else:
+                    msg['status'] = '%s already exists.' % project
+            public_method.Opratings_log(
+                                        request.user,
+                                        'add platform {}'.format(project),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    )
+        return JsonResponse(msg)
+    return render(request, 'cmdbs/add_platform.html')
+
+
+# 添加平台
+@login_required(login_url='/cmdb/is_login/')
+def edit_platform_page(request):
+    platforms = Item.objects.all()
+    return render(request, 'cmdbs/edit_platform.html', {'login_user': request.user, 'all_platform': platforms})
+
+
+# 修改平台信息
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def edit_platform(request):
+    if request.method == 'POST':
+        data_list = request.POST.get('data', None)
+        message = {'status': 'success'}
+        if data_list:
+            r_data = json.loads(data_list)
+            project, desc = r_data
+            check_ip = Item.objects.filter(project=project).count()
+            if check_ip != 1:
+                message['status'] = 'please add %s first!' % project
+            else:
+                db_project = Item.objects.filter(project=project).values('desc')
+                if db_project[0]['desc'] != desc:
+                    Item.objects.filter(project=project).update(desc=desc)
+            public_method.Opratings_log(
+                                        request.user,
+                                        'edit platform {}'.format(project),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                     )
+        else:
+            message['status'] = 'No data received.'
+        return JsonResponse(message)
+
+
+# 删除平台
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def del_platform(request):
+    if request.method == 'POST':
+        del_data = request.POST.get('del_data', None)
+        msg = {'status': 'success.'}
+        recv_data = json.loads(del_data)
+        if isinstance(recv_data, list):
+            for project in recv_data:
+                try:
+                    Item.objects.filter(project=project).delete()
+                    Servers.objects.filter(project=project).delete()
+                except:
+                    msg = {'status': 'failure.'}
+                else:
+                    msg = {'status': 'success.'}
+                    public_method.Opratings_log(request.user,
+                                              'delete project {}'.format(project),
+                                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                              )
+        else:
+            try:
+                Item.objects.filter(project=recv_data).delete()
+                Servers.objects.filter(project=recv_data).delete()
+            except:
+                msg = {'status': 'failure.'}
+            public_method.Opratings_log(request.user,
+                                      'delete project {}'.format(recv_data),
+                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                      )
+        return JsonResponse(msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def server_base_page(request):  # 基础数据展示
+    all_record_log_data = Servers.objects.all()[0:10]
+    total_number = Servers.objects.all().count()
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0] + 1
+    msg = {'data_info': all_record_log_data,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/Server_page_change.html', msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def show_ajax_server(request):
+    recv_cur_page_number = request.POST.get('cur_page', None)
+    recv_change_page_number = request.POST.get('change_page_number', None)
+    search_data = request.POST.get('search_data', None)
+    jump_page = request.POST.get('jump_page', None)
+    change_page_number = common.try_int(recv_change_page_number, 10)
+    recv_cur_page_number = common.try_int(recv_cur_page_number, 1)
+    data_list = list()
+    show_datas = None
+    all_datas_count = None
+    pages = None
+
+    if all([recv_cur_page_number, recv_change_page_number]):
+        all_datas_count = Servers.objects.filter(Q(project__icontains=search_data) |
+                                                 Q(ip__icontains=search_data) |
+                                                 Q(os__icontains=search_data)
+                                                 ).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Servers.objects.filter(Q(project__icontains=search_data) |
+                                            Q(ip__icontains=search_data) |
+                                            Q(os__icontains=search_data))[
+                     real_cur_page_number:real_change_page_number]
+
+    if all([jump_page, recv_change_page_number]):
+        all_datas_count = Servers.objects.filter(Q(project__icontains=search_data) |
+                                                 Q(ip__icontains=search_data) |
+                                                 Q(os__icontains=search_data)).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Servers.objects.filter(Q(project__icontains=search_data) |
+                                            Q(ip__icontains=search_data) |
+                                            Q(os__icontains=search_data))[
+                     real_cur_page_number:real_change_page_number]
+
+    for item in range(len(show_datas)):
+        data_list.append({"project": show_datas[item].project,
+                          "ip": show_datas[item].ip,
+                          "ram": show_datas[item].ram,
+                          "cpu": show_datas[item].cpu,
+                          "hard_disk": show_datas[item].hard_disk,
+                          "os": show_datas[item].os,
+                          })
+    return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages})
+
+
+def look_per(request):
+    # per_list = list()
+    # u = User.objects.get(username='lxb').get_all_permissions()  # 查看对应用户拥有的所有权限
+    # u1 = User.objects.get(username='lxb') # 查看用户信息
+    c_u = User.objects.create_user(username='lch') # 添加用户
+    c = Permission.objects.values()  # 查看所有权限
+    # p = Permission.objects.get(codename='view_machine')  # 查看指定权限
+    # User.objects.get(username='lyy').user_permissions.add(p)  # 给指定用户添加权限
+    # L = User.objects.get(username='lxb').user_permissions.values()  # 查看指定用户所拥有的权限
+    # perm = Permission.objects.get(codename='view_machine')  # 删除对应的权限首先是要已经添加过
+    # User.objects.get(username='lxb').user_permissions.remove(perm) # 删除权限
+    # t = u1.has_perm('cmdbs.view_machine') # 判断用户是否拥有指定权限
+    # u1.set_password('7109667lxb')修改密码
+    # c = u1.save() 保存
+    # for i in u:
+    #    print(i)
+    #    per_list.append(i)
+    print(c)
+    return HttpResponse(c)
+
+
+# @permission_required(perm='cmdbs.cmdb_permission_set', login_url='/notice/')  # 装饰器从下到上执行
+@login_required(login_url='/cmdb/is_login/')
+def permissions(request):
+    all_user = User.objects.all()
+    return render(request, 'cmdbs/cmdb_permission.html', {'all_user': all_user, 'login_user': request.user})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def check_permissions(request):  # 这里是查看对应用户已经有的权限
+    types = ''
+    user = request.POST.get('user', None)
+    u = User.objects.get(username=user)
+    if u.groups.values('name').__len__() != 0:
+        types = u.groups.values('name')[0]['name']
+    user_permis = User.objects.get(username=user).get_all_permissions()
+    user_permis_list = [item.split('.')[-1] for item in user_permis]
+    return JsonResponse({'user_perms': user_permis_list, 'user_type': types})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
+    app_name = 'cmdbs.'
+    add_perms = list()
+    del_perms = list()
+    all_perms = list()
+    flag = True
+    msg = {'status': 'success'}
+    data = request.POST.get('content', None)
+    user = request.POST.get('user', None)
+    check_user = User.objects.get(username=user)
+    all_premissions = Permission.objects.values()
+    user_permis = User.objects.get(username=user).get_all_permissions()
+    user_permis_list = [item.split('.')[-1] for item in user_permis]
+    for all_perms_data in all_premissions:
+        all_perms.append(all_perms_data.get('codename', None))
+    for recv_data in json.loads(data):
+        if not check_user.has_perm(app_name+recv_data):
+            if recv_data in all_perms:
+                add_p = Permission.objects.get(codename=recv_data)
+                User.objects.get(username=user).user_permissions.add(add_p)
+                public_method.Opratings_log(request.user,
+                                          '{} add permissions {}'.format(user, add_p),
+                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                          )
+            else:
+                msg['status'] = '请在后台先添加好对应权限.'
+    for db_data in user_permis_list:
+        if db_data not in json.loads(data):
+            del_perms.append(db_data)
+    if len(del_perms) > 0:
+        flag = False
+    for del_perms_data in del_perms:
+        del_p = Permission.objects.get(codename=del_perms_data)
+        User.objects.get(username=user).user_permissions.remove(del_p)
+        public_method.Opratings_log(request.user,
+                                  '{} remove permissions {}'.format(user, del_p),
+                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                  )
+    add_perms.clear()
+    del_perms.clear()
+    all_perms.clear()
+    return JsonResponse(msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+def group_permissions(request):
+    all_groups = Group.objects.all()
+    return render(request, 'cmdbs/cmdb_group_perm.html', {'all_groups': all_groups})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def group_check_permission(request):
+    groups = request.POST.get('groups', None)
+    g = Group.objects.get(name=groups).permissions.values('codename')
+    groups_perm = [i.get('codename') for i in g]
+    return JsonResponse({'user_perms': groups_perm})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def group_edit_permissions(request):
+    msg = {'status': 'success'}
+    res = []
+    perm_data = request.POST.get('content', None)
+    perm_data = json.loads(perm_data)
+    group_name = request.POST.get('groups', None)
+    group_perm_opra = Group.objects.get(name=group_name)
+    group_perm = Group.objects.get(name=group_name).permissions.values('codename')
+    group_ori_perm = [i.get('codename') for i in group_perm]
+    print(perm_data)
+    for a_item in perm_data:
+        if a_item not in group_ori_perm:
+            add_p = Permission.objects.get(codename=a_item)
+            group_perm_opra.permissions.add(add_p)
+            if not group_perm_opra.permissions.filter(codename=a_item):
+                res.append(a_item)
+    for d_item in group_ori_perm:
+        if d_item not in perm_data:
+            del_p = Permission.objects.get(codename=d_item)
+            group_perm_opra.permissions.remove(del_p)
+            if group_perm_opra.permissions.filter(codename=d_item):
+                res.append(d_item)
+    if res.__len__() != 0:
+        msg['status'] = "change group'permission failed."
+    return JsonResponse(msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def record_operation_log(request):  # 基础数据展示
+    all_record_log_data = record_log.objects.all()[0:10]
+    total_number = record_log.objects.all().count()
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0] + 1
+    msg = {'data_info': all_record_log_data,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/Cmdb_oprating_record.html', msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def page_record_operation_log(request):
+    recv_cur_page_number = request.POST.get('cur_page', None)
+    recv_change_page_number = request.POST.get('change_page_number', None)
+    search_data = request.POST.get('search_data', None)
+    jump_page = request.POST.get('jump_page', None)
+    begin_date = request.POST.get('begin_date', None)
+    end_date = request.POST.get('end_date', None)
+    data_list = list()
+    show_datas = None
+    all_datas_count = None
+    pages = None
+    change_page_number = common.try_int(recv_change_page_number, 10)
+
+    if all([recv_cur_page_number, recv_change_page_number]):
+        if begin_date and not end_date:
+            start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
+            all_datas_count = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__gte=start_time
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__gte=start_time
+                                                    )[
+                         real_cur_page_number:real_change_page_number]
+        elif all([begin_date, end_date]):
+            start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
+            end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            all_datas_count = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__range=(start_time, end_time)
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(
+                                                   Q(operation_record__icontains=search_data) |
+                                                   Q(login_user__icontains=search_data),
+                                                    date__range=(start_time, end_time)
+                                                   )[real_cur_page_number:real_change_page_number]
+        else:
+            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data)
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                   Q(login_user__icontains=search_data))[
+                                                    real_cur_page_number:real_change_page_number]
+
+    if all([jump_page, recv_change_page_number]):
+        if begin_date and not end_date:
+            start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
+            all_datas_count = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__gte=start_time
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__gte=start_time
+                                                    )[
+                         real_cur_page_number:real_change_page_number]
+        elif all([begin_date, end_date]):
+            start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
+            end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            all_datas_count = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__range=(start_time, end_time)
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(
+                                                        Q(operation_record__icontains=search_data) |
+                                                        Q(login_user__icontains=search_data),
+                                                        date__range=(start_time, end_time)
+                                                    )[
+                         real_cur_page_number:real_change_page_number]
+        else:
+            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+                                                        Q(login_user__icontains=search_data)
+                                                        ).count()
+            if all_datas_count == 0:
+                all_datas_count = 1
+            pages = divmod(all_datas_count, change_page_number)
+            if pages[1] == 0:
+                pages = pages[0]
+            else:
+                pages = pages[0] + 1
+            real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+            real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+            if common.try_int(recv_cur_page_number, 0) > pages:
+                real_cur_page_number = (pages - 1) * change_page_number
+                real_change_page_number = pages * change_page_number
+            if real_change_page_number > all_datas_count:
+                real_change_page_number = all_datas_count
+            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+                                                   Q(login_user__icontains=search_data))[real_cur_page_number:real_change_page_number]
+    for item in range(len(show_datas)):
+        data_list.append({"login_user": show_datas[item].login_user,
+                          "operation_record": show_datas[item].operation_record,
+                          "date": show_datas[item].date,
+                          })
+    return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages})
+
+
+def db_check(request):
+    user_mail = User.objects.filter(username='lxb').values('email')
+    return HttpResponse('res:%s' % user_mail)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@accept_websocket
+def server_action(request):
+    if not request.is_websocket():  # 判断是不是websocket连接
+        return render(request, 'cmdbs/jumpage_servers.html')
+    else:
+        for message in request.websocket:
+            message = message.decode('utf-8')
+            project, ip, cmd = message.split('-')
+            ips = Servers.objects.filter(ip=str(ip)).count()
+            public_method.Opratings_log(request.user,
+                                        'machine operating cmd {}, ip {}'.format(cmd, ip),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        )
+            if ips > 0:
+                m_info = public_method.get_servers_info(project, project+"-"+ip)
+                command = public_method.running_cmd(cmd)
+                request.websocket.send("{}-{}-{}".format(project, ip, cmd))
+                try:
+                    if m_info.split().__len__() == 5:
+                        p_key = paramiko.RSAKey.from_private_key_file(m_info.split()[2])
+                        ssh = paramiko.SSHClient()
+                        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                        ssh.connect(hostname=ip,
+                                    username=m_info.split()[1],
+                                    port=m_info.split()[3],
+                                    pkey=p_key,
+                                    timeout=10)
+                    else:
+                        client = paramiko.Transport((ip, 22))
+                        client.connect(username=m_info.split()[1], password=m_info.split()[2])
+                        ssh = paramiko.SSHClient()
+                        ssh._transport = client
+                    stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
+                except (paramiko.ssh_exception.SSHException, paramiko.ssh_exception.AuthenticationException):
+                    request.websocket.send(ip+' :connect failed.')
+                else:
+                    while 1:
+                        one_by_one = stdout.readline().strip()
+                        request.websocket.send(one_by_one)
+                        if not one_by_one:
+                            break
+                    ssh.close()
+            else:
+                request.websocket.send('the {} not exists.'.format(ip))
+
+
+@login_required(login_url='/cmdb/is_login/')
+@accept_websocket
+def platform_action(request):
+    if not request.is_websocket():  # 判断是不是websocket连接
+        return render(request, 'cmdbs/jumpage_platforms.html')
+    else:
+        for message in request.websocket:
+            message = message.decode('utf-8')
+            projects, cmd = message.split("-")
+            ip_list = Servers.objects.filter(project=str(projects)).values('ip')
+            ips = Servers.objects.filter(project=str(projects)).count()
+            if ips > 0:
+                for item in ip_list:
+                    command = public_method.running_cmd(cmd)
+                    ip_info = item.get('ip', None)
+                    p_info = public_method.get_servers_info(projects, projects + "-" + ip_info)
+                    request.websocket.send("{}-{}-{}".format(projects, ip_info, cmd))
+                    public_method.Opratings_log(request.user,
+                                                '{}-{} operating cmd {}'.format(projects, ip_info, cmd),
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                )
+                    try:
+                        if p_info.split().__len__() == 5:
+                            p_key = paramiko.RSAKey.from_private_key_file(p_info.split()[2])
+                            ssh = paramiko.SSHClient()
+                            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                            ssh.connect(hostname=ip_info,
+                                        username=p_info.split()[1],
+                                        port=p_info.split()[3],
+                                        pkey=p_key,
+                                        timeout=10)
+                        else:
+                            client = paramiko.Transport((ip_info, 22))
+                            client.connect(username=p_info.split()[1], password=p_info.split()[2])
+                            ssh = paramiko.SSHClient()
+                            ssh._transport = client
+                        stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
+                    except (paramiko.ssh_exception.SSHException, paramiko.ssh_exception.AuthenticationException):
+                        request.websocket.send(ip_info+' :connect failed.')
+                    else:
+                        while 1:
+                            one_by_one = stdout.readline().strip()
+                            request.websocket.send(one_by_one)
+                            if not one_by_one:
+                                break
+                        ssh.close()
+            else:
+                request.websocket.send('the project {} not exists.'.format(projects))
+
+
+@login_required(login_url='/cmdb/is_login/')
+@accept_websocket
+def client_update(request):  # 更新包
+    if not request.is_websocket():  # 判断是不是websocket连接
+        return render(request, 'cmdbs/jumpage_client.html')
+    else:
+        for message in request.websocket:
+            message = message.decode('utf-8')
+            item, ipa_name = message.split('-')
+            projects = Item.objects.filter(project=item).count()
+            if projects == 1:
+                res = public_method.push_package(item, ipa_name)
+                public_method.Opratings_log(request.user,
+                                            'project {} push package.'.format(projects),
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            )
+                if res != -1 or not res.std_err:
+                    one_by_one = res.std_out.decode('gbk')
+                    one_by_one = one_by_one.replace('\n', '<br/>').replace('\r', '')
+                    request.websocket.send(one_by_one)
+                else:
+                    request.websocket.send('push package failed.')
+            else:
+                request.websocket.send('project {} not exists.'.format(message))
+
+
+@login_required(login_url='/cmdb/is_login/')
+def add_servers_page(request):  # 这里是增加服务器页面的基础数据展示
+    all_record_log_data = Servers.objects.all()[0:10]
+    total_number = Servers.objects.all().count()
+    print('total_number:%s' % total_number)
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0] + 1
+    msg = {'data_info': all_record_log_data,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/add_servers.html', msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def search_add_servers(request):
+    recv_cur_page_number = request.POST.get('cur_page', None)
+    recv_change_page_number = request.POST.get('change_page_number', None)
+    search_data = request.POST.get('search_data', None)
+    jump_page = request.POST.get('jump_page', None)
+    change_page_number = common.try_int(recv_change_page_number, 10)
+    recv_cur_page_number = common.try_int(recv_cur_page_number, 1)
+    data_list = list()
+    show_datas = None
+    all_datas_count = None
+    pages = None
+
+    if all([recv_cur_page_number, recv_change_page_number]):
+        all_datas_count = Servers.objects.filter(Q(project__icontains=search_data) |
+                                                 Q(ip__icontains=search_data) |
+                                                 Q(os__icontains=search_data)
+                                                 ).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Servers.objects.filter(Q(project__icontains=search_data) |
+                                            Q(ip__icontains=search_data) |
+                                            Q(os__icontains=search_data))[
+                                                                           real_cur_page_number:real_change_page_number]
+
+    if all([jump_page, recv_change_page_number]):
+        all_datas_count = Servers.objects.filter(Q(project__icontains=search_data) |
+                                                 Q(ip__icontains=search_data) |
+                                                 Q(os__icontains=search_data)).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+        show_datas = Servers.objects.filter(Q(project__icontains=search_data) |
+                                            Q(ip__icontains=search_data) |
+                                            Q(os__icontains=search_data))[
+                                                                           real_cur_page_number:real_change_page_number]
+
+    for item in range(len(show_datas)):
+        data_list.append({"project": show_datas[item].project,
+                          "ip": show_datas[item].ip,
+                          "ram": show_datas[item].ram,
+                          "cpu": show_datas[item].cpu,
+                          "hard_disk": show_datas[item].hard_disk,
+                          "os": show_datas[item].os,
+                          })
+    return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages})
+
+
+# 添加服务器页面
+@login_required(login_url='/cmdb/is_login/')
+def add_servers_page(request):
+    all_platform = Item.objects.all()
+    return render(request, 'cmdbs/add_data.html', {'login_user': request.user, 'all_platform': all_platform})
+
+
+# 添加服务器
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def create_servers(request):
+    server_info = request.POST.get('data', None)
+    msg = {'status': 'success'}
+    if not isinstance(json.loads(server_info), list):
+        msg['status'] = 'add servers failure.'
+    else:
+        project, ip, ram, cpu, disk, os = json.loads(server_info)
+        try:
+            add_servers = Servers(project=project, ip=ip, ram=ram, cpu=cpu, hard_disk=disk, os=os)
+            add_servers.save()
+        except:
+            msg['status'] = 'add server %s failed.' % ip
+        public_method.Opratings_log(request.user,
+                                  '{} add servers {}.'.format(project, ip),
+                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                  )
+    return JsonResponse(msg)
+
+
+# 删除服务器
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def del_servers(request):
+    del_data = request.POST.get('del_data', None)
+    msg = {'status': 'success.'}
+    if isinstance(json.loads(del_data), list):
+        for servers in json.loads(del_data):
+            project, ip = servers.split('-')
+            try:
+                Servers.objects.filter(project=project, ip=ip).delete()
+            except:
+                msg = {'status': 'failure.'}
+            else:
+                msg = {'status': 'success.'}
+                public_method.Opratings_log(request.user,
+                                          'delete servers {}'.format(ip),
+                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                          )
+    else:
+        project, ip = json.loads(del_data).split('-')
+        try:
+            Servers.objects.filter(project=project, ip=ip).delete()
+        except:
+            msg = {'status': 'failure.'}
+        public_method.Opratings_log(request.user,
+                                  'delete servers {}'.format(ip),
+                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                  )
+    return JsonResponse(msg)
+
+
+# 服务器信息编辑页面
+@login_required(login_url='/cmdb/is_login/')
+def edit_servers_page(request):
+    all_platform = Item.objects.all()
+    return render(request, 'cmdbs/edit_td_data.html', {'login_user': request.user, 'all_platform': all_platform})
+
+
+# 修改服务器信息
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def edit_servers(request):
+    data_list = request.POST.get('data', None)
+    message = {'status': 'success'}
+    if data_list:
+        r_data = json.loads(data_list)
+        project, ip, ram, cpu, disk, os = r_data
+        check_ip = Servers.objects.filter(ip=ip).count()
+        if check_ip != 1:
+            message['status'] = 'please add server first!'
+        else:
+            db_project = Servers.objects.filter(ip=ip).values('project')
+            if db_project[0]['project'] != project:
+                Servers.objects.filter(ip=ip).update(project=project)
+
+            db_ram = Servers.objects.filter(ip=ip).values('ram')
+            if db_ram[0]['ram'] != int(ram):
+                Servers.objects.filter(ip=ip).update(ram=int(ram))
+
+            db_cpu = Servers.objects.filter(ip=ip).values('cpu')
+            if db_cpu[0]['cpu'] != int(cpu):
+                Servers.objects.filter(ip=ip).update(cpu=int(cpu))
+
+            db_disk = Servers.objects.filter(ip=ip).values('hard_disk')
+            if db_disk[0]['hard_disk'] != int(disk):
+                Servers.objects.filter(ip=ip).update(hard_disk=int(disk))
+
+            db_os = Servers.objects.filter(ip=ip).values('os')
+            if db_os[0]['os'] != os:
+                Servers.objects.filter(ip=ip).update(os=os)
+    else:
+        message['status'] = 'No data received.'
+
+    return JsonResponse(message)
+
+
+@login_required(login_url='/cmdb/is_login/')
+def user_page(request):
+    user_type = {}
+    all_info = User.objects.filter(id__gte=1).values('username')
+    for i in all_info:
+        u = User.objects.get(username=i.get('username'))
+        if u.groups.values('name').__len__() != 0:
+            types = u.groups.values('name')[0]['name']
+            user_type[i.get('username')] = types
+    all_users = User.objects.all()[0:10]
+    total_number = User.objects.all().count()
+    total_page = divmod(total_number, 10)
+    if total_page[1] == 0:
+        total_page = total_page[0]
+    else:
+        total_page = total_page[0]+1
+    msg = {'data_info': all_users,
+           'user_type': user_type,
+           'total_number': total_number,
+           'total_page': total_page}
+    return render(request, 'cmdbs/user_manage.html', msg)
+
+
+def user_infos_page(request):
+    return render(request, 'cmdbs/user_infos.html')
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def userinfo(request):
+    us = request.POST.get('user', None)
+    user_type = {}
+    msg = {'status': 'success'}
+    u = User.objects.get(username=us)
+    u_info = User.objects.filter(username=us).values('email', 'is_active', 'date_joined')
+    if u.groups.values('name').__len__() != 0:
+        types = u.groups.values('name')[0]['name']
+        user_type['email'] = u_info[0].get('email', None)
+        user_type['user_type'] = types
+        if u_info[0].get('is_active', None):
+            user_type['is_active'] = '启用'
+        else:
+            user_type['is_active'] = '停用'
+        user_type['date_joined'] = u_info[0].get('date_joined', None)
+    else:
+        msg['status'] = 'failed.'
+    return JsonResponse({'msg': msg, 'data': user_type})
+
+
+@login_required(login_url='/cmdb/is_login/')
+def add_user_page(request):
+    groups = Group.objects.all()
+    return render(request, 'cmdbs/addusers.html', {'groups': groups})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def manage_user_turn_page(request):
+    recv_cur_page_number = request.POST.get('cur_page', None)
+    recv_change_page_number = request.POST.get('change_page_number', None)
+    search_data = request.POST.get('search_data', None)
+    jump_page = request.POST.get('jump_page', None)
+    user_type = {}
+    all_info = User.objects.filter(id__gte=1).values('username')
+    for i in all_info:
+        u = User.objects.get(username=i.get('username'))
+        types = u.groups.values('name')[0]['name']
+        user_type[i.get('username')] = types
+    change_page_number = common.try_int(recv_change_page_number, 10)
+    recv_cur_page_number = common.try_int(recv_cur_page_number, 1)
+    data_list = list()
+    show_datas = None
+    all_datas_count = None
+    pages = None
+
+    if all([recv_cur_page_number, recv_change_page_number]):
+        all_datas_count = User.objects.filter(Q(username__icontains=search_data) |
+                                              Q(email__icontains=search_data) |
+                                              Q(is_active__icontains=search_data)).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(recv_cur_page_number, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(recv_cur_page_number, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+            show_datas = User.objects.filter(Q(username__icontains=search_data) |
+                                             Q(email__icontains=search_data) |
+                                             Q(is_active__icontains=search_data))[
+                                                                           real_cur_page_number:real_change_page_number]
+
+    if all([jump_page, recv_change_page_number]):
+        all_datas_count = User.objects.filter(Q(username__icontains=search_data) |
+                                              Q(email__icontains=search_data) |
+                                              Q(is_active__icontains=search_data)).count()
+        if all_datas_count == 0:
+            all_datas_count = 1
+        pages = divmod(all_datas_count, change_page_number)
+        if pages[1] == 0:
+            pages = pages[0]
+        else:
+            pages = pages[0] + 1
+        real_cur_page_number = (common.try_int(jump_page, 0) - 1) * change_page_number
+        real_change_page_number = common.try_int(jump_page, 0) * change_page_number
+        if common.try_int(recv_cur_page_number, 0) > pages:
+            real_cur_page_number = (pages - 1) * change_page_number
+            real_change_page_number = pages * change_page_number
+        if real_change_page_number > all_datas_count:
+            real_change_page_number = all_datas_count
+            show_datas = User.objects.filter(Q(username__icontains=search_data) |
+                                             Q(email__icontains=search_data) |
+                                             Q(is_active__icontains=search_data))[
+                                                                           real_cur_page_number:real_change_page_number]
+    for item in range(len(show_datas)):
+        data_list.append({"username": show_datas[item].username,
+                          "email": show_datas[item].email,
+                          "is_active": show_datas[item].is_active,
+                          "date_joined": show_datas[item].date_joined,
+                          })
+    return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages, "user_type": user_type})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def add_del_edit_user(request):
+    user = request.POST.get('username', None)
+    email = request.POST.get('email', None)
+    password = request.POST.get('password', None)
+    user_type = request.POST.get('usertype', None)
+    action = request.POST.get('action', None)
+    msg = {'status': 'success'}
+
+    # 添加账户
+    if action == 'add_user':
+        check_user = User.objects.filter(username=user)
+        if check_user.__len__() != 0:
+            msg['status'] = '用户已存在'
+        else:
+            try:
+                recv_group = Group.objects.filter(name=user_type)[0]
+                User.objects.create_user(username=user, email=email, password=password)
+                add_user = User.objects.filter(username=user)[0]
+                add_user.groups.add(recv_group)
+            except:
+                msg['status'] = '添加失败'
+        public_method.Opratings_log(request.user,
+                                  'add user {}'.format(check_user),
+                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                  )
+
+    # 删除账户
+    if action == 'delete':
+        if isinstance(json.loads(user), list):
+            for u in json.loads(user):
+                del_u = User.objects.filter(username=u)[0]
+                if del_u.groups.values('name').__len__() > 0:
+                    del_g_n = del_u.groups.values('name')[0]['name']
+                    _del_g = Group.objects.filter(name=del_g_n)[0]
+                    try:
+                        del_u.groups.remove(_del_g)
+                        User.objects.filter(username=u).delete()
+                    except:
+                        msg['status'] = '删除失败'
+                    public_method.Opratings_log(request.user,
+                                              'delete user {}'.format(del_u),
+                                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                              )
+        else:
+            del_u = User.objects.filter(username=json.loads(user))[0]
+            recv_group = Group.objects.filter(name=user_type)[0]
+            try:
+                del_u.groups.remove(recv_group)
+                User.objects.filter(username=json.loads(user)).delete()
+            except:
+                msg['status'] = '删除失败'
+            public_method.Opratings_log(request.user,
+                                      'delete user {}'.format(del_u),
+                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                      )
+
+    # 账户启用
+    if action == 'enable':
+        try:
+            update = User.objects.filter(username=user).values('is_active')
+            if update[0]['is_active']:
+                msg['status'] = '用户已经是启用状态'
+            else:
+                try:
+                    User.objects.filter(username=user).update(is_active=1)
+                except:
+                    msg['status'] = '用户启用失败'
+        except:
+            msg['status'] = '用户启用失败'
+        else:
+            public_method.Opratings_log(request.user,
+                                      'enable user {}'.format(user),
+                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                      )
+
+
+    # 账户禁用
+    if action == 'disable':
+        try:
+            update = User.objects.filter(username=user).values('is_active')
+            if not update[0]['is_active']:
+                msg['status'] = '用户已经是禁用状态'
+            else:
+                try:
+                    User.objects.filter(username=user).update(is_active=0)
+                except:
+                    msg['status'] = '用户禁用失败'
+        except:
+            msg['status'] = '用户禁用失败'
+        else:
+            public_method.Opratings_log(request.user,
+                                      'disable user {}'.format(user),
+                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                      )
+
+    # 修改密码
+    if action == 'change_password':
+        try:
+            user_set = User.objects.get(username=user)
+        except:
+            msg['status'] = '用户不存在'
+        else:
+            recv_group = Group.objects.filter(name=user_type)[0]
+            group_info = [g_name.get('name') for g_name in Group.objects.filter(id__gte=1).values('name')]
+            try:
+                for gs in group_info:
+                    del_g = Group.objects.filter(name=gs)[0]
+                    if user_set.groups.values('name')[0]['name'] and del_g != user_type:
+                        user_set.groups.remove(del_g)
+                        user_set.groups.add(recv_group)
+                User.objects.filter(username=user).update(email=email)
+                user_set.set_password(password)
+                user_set.save()
+            except:
+                msg['status'] = '保存失败'
+            else:
+                public_method.Opratings_log(request.user,
+                                          'change user {} password'.format(user),
+                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                          )
+
+    return JsonResponse(msg)
+
+
+@login_required(login_url='/cmdb/is_login/')
+def clear_cache(request):
+    return render(request, 'cmdbs/clear_cache.html')
+
+
+@login_required(login_url='/cmdb/is_login/')
+def check_web_log(request):
+    return render(request, 'cmdbs/check_web_log.html')
+
+
+@login_required(login_url='/cmdb/is_login/')
+def machine_status(request):
+    ip = Servers.objects.all()
+    public_method.get_machine_data()
+    return render(request, 'cmdbs/machine_status.html', {'ip': ip})
+
+
+@login_required(login_url='/cmdb/is_login/')
+@csrf_exempt
+def recv_file(request):
+    if request.method == 'POST':
+        data = request.FILES.get('filename', None)
+        ipa_name = request.POST.get('ipaname', None)
+        res = public_method.get_servers_info('web-ftp', 'web-ftp-machine')
+        ip = res.split()[0]
+        port = res.split()[-1]
+        user = res.split()[1]
+        passwed = res.split()[2]
+        msg = {'status': 'success',
+               'md5': ''
+               }
+        if data:
+            paths = '/opt/packages'
+            files = paths + os.sep + data.name
+            ipaname = paths + os.sep + ipa_name
+            with open(files, 'wb') as f:
+                for i in data.chunks():  # chunks()防止内存被占满
+                    f.write(i)
+            os.rename(files, ipaname)
+            msg['md5'] = hashlib.md5(open(ipaname, 'rb').read()).hexdigest()
+            ftp = ftplib.FTP()
+            ftp.set_pasv(False)
+            ftp.encoding = 'utf-8'
+            try:
+                ftp.connect(ip, int(port), timeout=10)
+                ftp.login(user, passwed)
+            except (socket.timeout, ftplib.error_perm):
+                msg['status'] = 'ftp connect error.'
+            else:
+                try:
+                    ftp.storbinary('STOR ' + ipa_name,
+                                   open(ipaname, 'rb'))
+                    time.sleep(0.5)
+                except ftplib.error_perm:
+                    msg['status'] = 'Transfer file failed.'
+        return JsonResponse(msg)
+
+
+def servers_api(request):  # ip获取的api接口
+    if request.method == 'GET':
+        mails = {'dep': '120332269@qq.com', 'opra': '15889709122@qq.com'}
+        para_key = 'cmdb'
+        msg = {'res': -1, 'message': 'para error or para type error'}
+        key_list = [hashlib.md5((para_key+'-'+v).encode()).hexdigest() for k, v in mails.items()]
+        key = request.GET.get('key', None)
+        name = request.GET.get('name', None)
+        servers = request.GET.get('item', None)
+        if all([key, name, servers]):
+            try:
+                key = json.loads(key)
+                name = json.loads(name)
+                servers = json.loads(servers)
+            except ValueError:
+                msg['message'] = 'Parameter type error.'
+                return JsonResponse(msg)
+            if str(key) in key_list and str(name) == 'lxb' and str(servers) == 'servers':
+                data = {'res': ''}
+                ip_dict = Servers.objects.filter(id__gte=0).values('ip')
+                ip = [i.get('ip') for i in ip_dict]
+                data['res'] = ip
+                return JsonResponse(data)
+            else:
+                msg['message'] = 'Verification failed.'
+                return JsonResponse(msg)
+        else:
+            msg['message'] = 'Miss parameter.'
+            return JsonResponse(msg)
+    return HttpResponse("<h1>404<h1>")
+

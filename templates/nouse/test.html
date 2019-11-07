@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试</title>
+</head>
+<body>
+    <div id="test_input">
+        <input type="checkbox" value="lxb">
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+    $('#test_input').click(function () {
+        if($("input[type=checkbox]:checked")){
+            console.log((this).value());
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>运维平台</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/layout.css" />
+    <style type="text/css"></style>
+</head>
+<body>
+    <div class="div_change">
+        <div class="div_change_1" id="auto_height">
+            <h3 class="h3_change">运维平台</h3>
+            <p class="welcome_user">
+                <img src="/static/img/index/user.jpg"> :
+                <span>{{ login_user }}</span>
+            </p>
+            <a class="a_change_2" href="http://127.0.0.1:8000/is_logout/">
+                <img src="/static/img/index/close.jpg" style="position: relative; top: -5px; left: 25px;">
+            </a>
+        </div>
+            <div class="div_change_3">
+                <ul class="ul_change">
+                    <li class="li_change">
+                        <a class="a_change" target="iframe_a" href="/welcome_base_page/">首页</a>
+                    </li>
+                    {% if perms.permiapp.view_machine %}
+                    <li class="li_change">
+                        <a class="a_change" href="#">机器管理</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/server_base_data/">主机列表</a></li>
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/machine_status/">主机状态</a></li>
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/add_servers_page/">主机添加</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.permiapp.view_platform %}
+                    <li class="li_change">
+                        <a class="a_change"  href="#">平台管理</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/platform_base_data/">停服维护</a></li>
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="#">版本热更</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.permiapp.view_Permission %}
+                    <li class="li_change">
+                        <a class="a_change"  href="#">权限管理</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/permission/">权限设置</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.permiapp.view_log %}
+                    <li class="li_change">
+                        <a class="a_change" href="#">日志管理</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/record_operation_log/">操作日志</a></li>
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/check_web_log/">web日志</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.permiapp.view_User_Management %}
+                    <li class="li_change">
+                        <a class="a_change" href="#">用户管理</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/user_page/">用户管理</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.permiapp.view_cache %}
+                    <li class="li_change">
+                        <a class="a_change" href="#">缓存清除</a>
+                        <ul class="ul_change_1">
+                            <li class="li_change_1"><a class="a_change_1" target="iframe_a" href="/clear_cache/">清缓存</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div style="margin: 0;padding: 0;float: right" class=".iframe_change">
+                <iframe src="/welcome_base_page/" name="iframe_a" width="1728" height="835"  frameborder="no"></iframe>
+            </div>
+            <div class="div_change_5">Copyright ©2018-2019 廖旋彪独立开发. All Rights Reserved</div>
+        </div>
+
+
+</body>
+    <script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+    <script type="text/javascript">
+        $('.ul_change_1').hide();
+        $(function(){
+            $(".a_change").click(function(){
+                $(this).next().toggle(100,function(){
+                  });
+               });
+             });
+
+        /*这里是复选框全选跟全取消*/
+        $(function () {
+            $("#select_all").click(function(){
+                console.log($(this).prop("checked"));
+                if($(this).prop("checked")){
+                    $("input[name='ip']").prop("checked",true);
+                }else{
+                    $("input[name='ip']").prop("checked",false);
+                }
+            });
+        });
+
+        $(document).ready(function(){
+            //初始化高度
+            $(".iframe_change").height($(window).height());
+            $(".div_change").height($(window).height());
+            //当文档窗口发生改变时 触发
+            $(window).resize(function(){
+                $(".iframe_change").height($(window).height());
+                $(".div_change").height($(window).height());
+        })
+    });
+
+    </script>
+</html>

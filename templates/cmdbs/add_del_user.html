@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+        table{
+            width: 82%;
+            height: 10%;
+            margin-top:5px;
+            margin-left:0;
+            border-collapse: collapse;
+            border: 1px solid #627280;
+        }
+        tr,th,td{
+            height:30px;
+            width:6%;
+            text-align:center;
+            border: 1px solid #EBEBEB;
+            font-size: 14px;
+        }
+        td{
+            background-color: white;
+        }
+        th{
+            background-color: ghostwhite;
+        }
+        tbody button:hover{
+            background: #5599FF;
+        }
+        .div_add_servers_info{
+            width: 250px;
+            height: 260px;
+            padding-top: 46px;
+            padding-left: 45px;
+            margin-left: 31px;
+            margin-bottom: 30px;
+            border: 2px solid #f5f2f2;
+            border-radius:25px;
+            -moz-border-radius:25px; /* Old Firefox */
+        }
+        .div_add_servers_info input{
+             -webkit-appearance: none;
+            background-color: #fff;
+            background-image: none;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            box-sizing: border-box;
+            color: #606266;
+            display: inline-block;
+            font-size: inherit;
+            outline: none;
+            padding: 3px 5px;
+            transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+            width: 170px;
+            height: 30px;
+            margin: 0 6px;
+        }
+        .div_add_servers_info button{
+            width: 96px; /* 宽度 */
+            height: 23px; /* 高度 */
+            border-width: 0; /* 边框宽度 */
+            border-radius: 3px; /* 边框半径 */
+            background: #5599FF; /* 背景颜色 */
+            cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+            outline: none; /* 不显示轮廓线 */
+            font-family: Microsoft YaHei; /* 设置字体 */
+            color: white; /* 字体颜色 */
+            font-size: 13px; /* 字体大小 */
+            margin-left: 2px;
+        }
+        .div_add_servers_info button:hover{
+            background: #4278ff;
+        }
+        tbody button{
+            width: 60px; /* 宽度 */
+            height: 23px; /* 高度 */
+            border-width: 0; /* 边框宽度 */
+            border-radius: 3px; /* 边框半径 */
+            background: #90d4ff; /* 背景颜色 */
+            cursor: pointer; /* 鼠标移入按钮范围时出现手势 */
+            outline: none; /* 不显示轮廓线 */
+            font-family: Microsoft YaHei; /* 设置字体 */
+            color: white; /* 字体颜色 */
+            font-size: 13px; /* 字体大小 */
+            margin-left: 2px;
+        }
+        .check_record_log_css input{
+            -webkit-appearance: none;
+            background-color: #fff;
+            background-image: none;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            box-sizing: border-box;
+            color: #606266;
+            display: inline-block;
+            font-size: inherit;
+            outline: none;
+            padding: 3px 5px;
+            transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+            width: 170px;
+            height: 30px;
+            margin: 0 6px;
+        }
+        .page_info{
+            margin-top: 10px;
+            margin-left: 0;
+        }
+        .page_info span{
+            font-size: 14px;
+        }
+        .page_info span.pages{
+            padding: 0 10px;
+            vertical-align: top;
+            display: inline-block;
+            font-size: 14px;
+            min-width: 36px;
+            min-height: 28px;
+            line-height: 28px;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-align: center;
+            background-color: #ffffff;
+            color: #606266;
+            border-radius: 6px;
+            margin: 0 1px;
+            border: 1px solid #ebebeb;
+            height: 30px;
+        }
+        .page_info span.pages:hover { /* 鼠标移入按钮范围时改变颜色 */
+	        background: #b5c3ef;
+        }
+        .page_info span input {
+             -webkit-appearance: none;
+            background-color: #fff;
+            background-image: none;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            box-sizing: border-box;
+            color: #606266;
+            display: inline-block;
+            font-size: inherit;
+            outline: none;
+            padding: 3px 5px;
+            transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+            width: 40px;
+            height: 28px;
+            margin: 0 6px;
+        }
+        .page_info span label select{
+            -webkit-appearance: none;
+            background-color: #fff;
+            background-image: none;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            box-sizing: border-box;
+            color: #606266;
+            display: inline-block;
+            font-size: inherit;
+            outline: none;
+            padding: 3px 5px;
+            transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+            width: 42px;
+            height: 30px;
+            margin: 0 6px;
+        }
+    </style>
+</head>
+<body>
+    <div style="margin-left: 250px;margin-top: 30px">
+        <div class="div_add_servers_info">
+            <p><input type="text" id="add_username" name="user_click" placeholder="用户名"></p>
+            <p><input type="email" id="add_email" name="user_click" placeholder="邮箱"></p>
+            <p><input type="password" id="password" name="user_click" placeholder="您的密码"></p>
+            <p><input type="password" id="re_password" name="user_click" placeholder="再次输入您的密码"></p>
+            <button type="submit" id="add_user" name="user_manage">添加</button>
+            <button type="submit" id="change_password" name="user_manage">修改密码</button>
+        </div>
+        <div>
+            <div class="check_record_log_css">
+                <input type="text" placeholder="请输入关键词" name="search_data"/>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>状态</th>
+                        <th>时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="clears">
+                    {% for item in data_info %}
+                    <tr>
+                        <td class="select_first_td">{{ item.username }}</td>
+                        <td>{{ item.email }}</td>
+                        <td>{{ item.is_active }}</td>
+                        <td>{{ item.date_joined }}</td>
+                        <td>
+                            <button type="submit" id="enable" value="{{ item.username }}" name="user_status">启用</button>
+                            <button type="submit" id="disable" value="{{ item.username }}" name="user_status">禁用</button>
+                            <button style="background-color: #da4341" type="submit" id="delete" value="{{ item.username }}" name="user_status">删除</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="page_info">
+            <span>
+                <label>每页显示
+                    <select id="change_page_number" onchange="change_data_number()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                    </select>
+                </label>
+            </span>
+            <span class="pages" id="previous">上一页</span>
+            <span class="pages" id="next">下一页</span>
+            <span>跳转到</span>
+            <span><input type="number" name="jump_page"></span>
+            <span>页</span>
+            <span  id="now_page_number">第1页</span>
+            <span id="total_pages">总共{{ total_page }}页</span>
+            <span id="all_count">合计{{ total_number }}条</span>
+        </div>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+    /*提示input框都要输入内容并提交到后台*/
+    $(function () {
+        $("button[name='user_manage']").on('click', function () {
+            var input_list = new Array();
+            $(".div_add_servers_info input").each(function () {
+                if($(this).val()){
+                    input_list.push($(this).val());
+                }
+            });
+            if(input_list.length!=4){
+                alert("都填上.");
+                return false;
+            }
+            var user = $("#add_username").val();
+            var password = $("#password").val();
+            var re_password = $("#re_password").val();
+            var email = $("#add_email").val();
+            var action = $(this).attr('id');
+            if (password!=re_password){
+                alert("输入的密码要一致啊,哥.");
+                return false;
+            }
+            add_change_user(action,user,email,re_password)
+        })
+    });
+
+    /*用户状态修改方法*/
+    function add_change_user(action, user, email, password){
+        $.ajax({
+            url:'/cmdb/add_del_edit_user/',
+            type:'post',
+            data:{
+                'action': action,
+                'username': user,
+                'email': email,
+                'password': password,
+            },
+            error:function () {
+                console.log('失败');
+            },
+            success:function (data) {
+                alert(data['status']);
+            }
+        })
+    }
+
+    /*禁用启用用户*/
+    $(function () {
+        $("button[name='user_status']").on('click', function () {
+            var action = $(this).attr('id');
+            var user = $(this).val();
+            console.log(action,user);
+            add_change_user(action,user,'','');
+        })
+    });
+
+    /*点击表格任意行自动填充*/
+    $(function () {
+        $(document).on('click','.select_first_td',function () {
+            var user =  $(this).text();
+            var email = $(this).siblings("td:eq(0)").text();
+            $("#add_username").val(user);
+            $("#add_email").val(email);
+        })
+    });
+
+    /*这里展示每页的数据*/
+    page_number = 1; /*这里只能是要设置一个全局变量,因为以下函数都需要用到,这个变量非常重要*/
+    function change_data_number() {
+        $.ajax({
+            url:'/cmdb/manage_user_turn_page/',
+            type:'post',
+            data:{
+                    'cur_page': 1,
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':$("input[name='jump_page']").val(),
+                    'search_data':$("input[name='search_data']").val(),
+                },
+            error:function () {
+                console.log('失败');
+            },
+            success:function (data) {
+                page_number = 1;
+                var cleardatas = "";
+                for(var i=0;i<data['data_info'].length;i++){
+                    var alldatas = data['data_info'][i];
+                    cleardatas += '<tr>';
+                    cleardatas += '<td class="select_first_td">'+alldatas['username']+'</td>';
+                    cleardatas += '<td>'+alldatas['email']+'</td>';
+                    cleardatas += '<td>'+alldatas['is_active']+'</td>';
+                    cleardatas += '<td>'+alldatas['date_joined']+'</td>';
+                    cleardatas += '<td>'+
+                                        '<button type="submit" id="enable" name="user_status" value='+alldatas['username']+'>启用</button>'+
+                                        '<button type="submit" id="disable" name="user_status" value='+alldatas['username']+'>禁用</button>'+
+                                        '<button style="background-color: #843534" type="submit" id="delete" name="user_status" value='+alldatas['username']+'>删除</button>'
+                                        +'</td>';
+                    cleardatas += '</tr>';
+                }
+                $("#clears").empty().html(cleardatas);
+                $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                $("#now_page_number").empty().html('第'+page_number+'页');
+                $("#all_count").empty().html('合计'+data['total_number']+'条');
+            }
+        })
+    }
+
+    /*这里就是牛皮的翻页了*/
+    $(function () {
+        $('span').on('click', function () {
+            if($(this).attr('id')=='previous'){
+                page_number --;
+                if(page_number>0){
+                    console.log('one'+page_number);
+                    turn_page();
+                }
+                else{
+                    page_number = 1;
+                    console.log('two'+page_number);
+                    alert('别点了,翻完了.');
+                }
+            }
+            else if($(this).attr('id')=='next'){
+                page_number ++;
+                console.log('three:'+page_number);
+                turn_page();
+            }
+        })
+    });
+
+    /*这里是翻页的核心函数*/
+    function turn_page() {
+        $.ajax({
+                url:'/cmdb/manage_user_turn_page/',
+                type:'post',
+                data:{
+                    'cur_page': page_number,
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':'',
+                    'search_data':$("input[name='search_data']").val(),
+                },
+                error:function () {
+                    console.log('失败');
+                },
+                success:function (data) {
+                    console.log(data['data_info']);
+                    if(data['total_pages'] == 1 && page_number>data['total_pages']){
+                        page_number = data['total_pages'];
+                        alert('别点了,翻完了');
+                        return false;
+                    }
+                    else if(page_number>data['total_pages'] && data['total_pages'] != 1){
+                        page_number = data['total_pages'];
+                        alert('别点了,翻完了.');
+                        return false;
+                    }
+                    var cleardatas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td class="select_first_td">'+alldatas['username']+'</td>';
+                        cleardatas += '<td>'+alldatas['email']+'</td>';
+                        cleardatas += '<td>'+alldatas['is_active']+'</td>';
+                        cleardatas += '<td>'+alldatas['date_joined']+'</td>';
+                        cleardatas += '<td>'+
+                                        '<button type="submit" id="enable" name="user_status" value='+alldatas['username']+'>启用</button>'+
+                                        '<button type="submit" id="disable" name="user_status" value='+alldatas['username']+'>禁用</button>'+
+                                        '<button style="background-color: #843534" type="submit" id="delete" name="user_status" value='+alldatas['username']+'>删除</button>'
+                                            +'</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").empty().html(cleardatas);
+                    $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                    $("#now_page_number").empty().html('第'+page_number+'页');
+                    $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+
+        /*这里是提交页码*/
+        $($("input[name='jump_page']")).keypress(function (e) {
+            if(e.which == "13")
+                if($(this).val()){
+                    search_page($(this).val());
+                }
+                else{
+                    alert('请输入要查询的时间或关键词.');
+                }
+        });
+
+        /*这里是提交页码后台返回的数据展示*/
+        function search_page(page) {
+            $.ajax({
+                url:'/cmdb/manage_user_turn_page/',
+                type:'post',
+                data:{
+                    'cur_page': '',
+                    'change_page_number':$("#change_page_number").val(),
+                    'jump_page':$("input[name='jump_page']").val(),
+                    'search_data':$("input[name='search_data']").val(),
+                },
+                error:function () {
+                    console.log('失败.')
+                },
+                success:function (data) {
+                    if($("input[name='jump_page']").val()>data['total_pages']){
+                        alert('好好看,哪有这么多页.');
+                        return false;
+                    }
+                    page_number = page;
+                    var cleardatas = "";
+                    for(var i=0;i<data['data_info'].length;i++){
+                        var alldatas = data['data_info'][i];
+                        cleardatas += '<tr>';
+                        cleardatas += '<td class="select_first_td">'+alldatas['username']+'</td>';
+                        cleardatas += '<td>'+alldatas['email']+'</td>';
+                        cleardatas += '<td>'+alldatas['is_active']+'</td>';
+                        cleardatas += '<td>'+alldatas['date_joined']+'</td>';
+                        cleardatas += '<td>'+
+                                        '<button type="submit" id="enable" name="user_status" value='+alldatas['username']+'>启用</button>'+
+                                        '<button type="submit" id="disable" name="user_status" value='+alldatas['username']+'>禁用</button>'+
+                                        '<button style="background-color: #843534" type="submit" id="delete" name="user_status" value='+alldatas['username']+'>删除</button>'
+                                    +'</td>';
+                        cleardatas += '</tr>';
+                    }
+                    $("#clears").empty().html(cleardatas);
+                    $("#total_pages").empty().html('总共'+data['total_pages']+'页');
+                    $("#now_page_number").empty().html('第'+page+'页');
+                    $("#all_count").empty().html('合计'+data['total_number']+'条');
+                }
+            })
+        }
+
+        /*实时的检测指定input框值的变化*/
+        $("input[name='search_data']").on('input propertychange', function () {
+            page_number = 1;
+            turn_page();
+        });
+
+        /*鼠标悬停在tr整行变色*/
+        $(function () {
+            $(document).on('mouseenter','td',function () {
+                $(this).css('background-color','#F6FAFF');
+                $(this).siblings('td').css('background-color','#F6FAFF');
+            });
+            $(document).on('mouseleave','td',function(){
+                $(this).css('background-color','white');
+                $(this).siblings('td').css('background-color','white');
+            });
+        })
+
+
+</script>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机管理</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/layout.css" />
+</head>
+<body>
+    <div class="div_change_4">
+        <div class="div_button">
+            <button  class="action-button" type="button" name="actions" value="synAccount">同步Account</button>
+            <button  class="action-button_1" type="button" name="actions" value="synLogin">同步Login</button>
+        </div>
+        <div id="ajax_show_data"></div>
+        <div class="div_change_6">主机数量  {{ items }}</div>
+        <nav class="navbar navbar-default navbar-fixed-bottom" id="nav_btn" style="left:700px;right: 580px;background: #ffffff;margin: 0;padding: 0"></nav>
+        <div class="div_select">
+            <select id="select_show_page" onchange="changepageitem(this);">
+                <option name="ajax_click" value="10">10</option>
+                <option name="ajax_click" value="20">20</option>
+                <option name="ajax_click" value="30">30</option>
+                <option name="ajax_click" value="40">40</option>
+            </select>
+        </div>
+        <div class="div_input_change_1">
+            <input type='checkbox' id='select_all'/>
+        </div>
+    </div>
+</body>
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="/static/js/jquery.cookie.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#select_all").click(function(){
+                console.log($(this).prop("checked"));
+                if($(this).prop("checked")){
+                    $("input[name='ip']").prop("checked",true);
+                }else{
+                    $("input[name='ip']").prop("checked",false);
+                }
+            });
+        });
+
+        $(document).ready(function(){
+            {# 搜索按钮点击事件 #}
+            $("option[name='ajax_click']").click(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://127.0.0.1:8000/host/',
+                    data:{"content":$("#select_show_page").val(),"page":10},
+                    success:function (results) {
+                        render(results)
+                    }
+                });
+            });
+        });
+
+        function render(results) {
+            var html = '<table class="table table-striped table-hover"><tr><th>选项</th><th>项目</th><th>ip</th><th>内网ip</th><th>cpu</th><th>内存</th>' +
+                '<th>内存</th><th>硬盘</th><th>时间</th></tr>';
+            for (var i = 0; i < results['info'].length; i++) {
+                var dates = results['info'][i];
+                html += '<tr>';
+                html += '<td>'+'<input type="checkbox"  name="ip" value="dates[\'ip\']" />'+'</td>';
+                html += '<td>'+dates['project']+'</td>';
+                html += '<td>'+dates['ip']+'</td>';
+                html += '<td>'+dates['intranet_ip']+'</td>';
+                html += '<td>'+dates['cpu']+'</td>';
+                html += '<td>'+dates['memory']+'</td>';
+                html += '<td>'+dates['disk']+'</td>';
+                html += '<td>'+dates['times']+'</td>';
+            }
+            $('#search_content').html(html+"</table>");
+        }
+
+        $(function(){
+            $("button[name='actions']").click(function(){
+                console.log($("input:checkbox[name='ip']:checked").length);
+                if ($("input:checkbox[name='ip']:checked").length <= 0){
+                    alert("都没勾选啊,兄弟!");
+                    return false;
+                }
+                if (confirm("确定操作吗?")){
+                        var parm = $(this).val();
+                        $("input[name='ip']:checked").each(function(){
+                            window.open("http://127.0.0.1:8000/host_page/?values="+$(this).val()+'&nbsp;'+parm);
+                        });
+                    }
+                });
+            });
+    </script>
+</html>

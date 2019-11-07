@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>点击页面在当前显示</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="test2">
+        <a href="#" name="test">平台管理</a>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+    $('a').click(function () {
+        $('#test2').load('http://127.0.0.1:8000/show_data')
+    })
+</script>
+</html>

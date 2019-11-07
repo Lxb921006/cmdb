@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title id="contents"></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .div_show_data{
+            height: 100px;
+            border-bottom: 1px solid grey;
+        }
+    </style>
+</head>
+<body>
+    <div class="div_show_data">
+        <div>
+            <p id="ip"></p>
+        </div>
+    </div>
+    <div id="jump_message" style="margin: 10px"></div>
+</body>
+    <script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+    <script type="text/javascript">
+        $(function(){
+            $("#ip").html(oneValues());
+        });
+        function oneValues(){
+            var result;
+            var url=window.location.search; //获取url中"?"符后的字串
+            if(url.indexOf("?")!=-1){
+                result = url.substr(url.indexOf("=")+1);
+                var rep_res = result.replace("/","  ");
+                console.log('等号后面的值:'+result);
+                $("#ip").append(rep_res);
+           //     var reg = RegExp("&nbsp;","g");
+                var reg = RegExp("/","g");
+                $("#contents").append(result.replace(reg,"|"));
+            }
+        //     return decodeURIComponent(result);
+        }
+        $(function(){
+            var all_data = $('#ip').text();
+            console.log(all_data);
+            var socket = new WebSocket("ws://127.0.0.1:8000/platform_action/");
+            console.log(socket);
+            socket.onopen = function(){
+                        console.log('already connect websocket');//已连接上Websocket
+                        socket.send(all_data);//发送数据到服务端
+                    };
+            socket.onmessage = function(e){
+                console.log( $('#jump_message').height() , 'message: ' + e.data);//输出服务端返回的数据
+                $('#jump_message').append(e.data+'<br/>');
+                window.scrollTo(0, document.documentElement.clientHeight);
+            };
+        });
+    </script>
+</html>

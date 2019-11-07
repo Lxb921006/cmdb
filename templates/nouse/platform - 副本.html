@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>平台信息</title>
+    <link rel="stylesheet" href="/static/css/permi.css/" type="text/css" />
+    <style></style>
+</head>
+<body>
+    <div class="platform_table">
+        <table border="1">
+            <tr>
+                <th>选项</th>
+                <th>平台</th>
+                <th>备注</th>
+                <th>机器数量</th>
+            </tr>
+            {% for data in all_data %}
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td><a style="text-decoration: none;color: black " href="#">{{ data.project }}</a></td>
+                    <td>{{ data.desc }}</td>
+                    <td>{{ data.servers_count }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+<script src="/static/js/jquery-1.11.1/jquery.min.js/"></script>
+<script type="text/javascript">
+    $("a").click(function () {
+        $.ajax({
+            url: '/machine_datas/',
+            type: 'post',
+            data: {'content': $(this).text()},
+            success: function (res) {
+                project_all_data(res)
+            }
+        })
+    });
+
+    function project_all_data(res) {
+        var html = '<table class="table table-striped table-hover"><tr><th>选项</th><th>项目</th><th>ip</th><th>内存</th><th>cpu</th>' +
+                '<th>硬盘</th><th>系统</th></tr>';
+            for (var i = 0; i < res['info'].length; i++) {
+                var dates = res['info'][i];
+                html += '<tr>';
+                html += '<td>'+'<input type="checkbox"  name="ip" value="dates[\'ip\']" />'+'</td>';
+                html += '<td>'+dates['project']+'</td>';
+                html += '<td>'+dates['ip']+'</td>';
+                html += '<td>'+dates['ram']+'</td>';
+                html += '<td>'+dates['cpu']+'</td>';
+                html += '<td>'+dates['hard_disk']+'</td>';
+                html += '<td>'+dates['os']+'</td>';
+            }
+            $('.platform_table').html(html+"</table>");
+    }
+</script>
+</html>
