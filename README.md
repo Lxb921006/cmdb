@@ -1,4 +1,4 @@
-# cmdb
+# cmdb based on django
 Simple,easy to understand cmdb
 
 testurl:http://118.25.185.60/cmdb/is_login/
