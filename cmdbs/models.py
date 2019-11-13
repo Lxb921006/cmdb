@@ -75,6 +75,7 @@ class Item(models.Model):
 
 class record_log(models.Model):
     login_user = models.CharField(max_length=20)
+    ips = models.CharField(max_length=20)
     operation_record = models.CharField(max_length=255)
     date = models.DateTimeField()
 

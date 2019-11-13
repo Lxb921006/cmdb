@@ -20,10 +20,15 @@ import winrm
 import functools
 
 
-def Opratings_log(user, desc, date):  # 这里是用户的操作记录方法
+def operating_log(user, desc, date, request):  # 这里是用户的操作记录方法
+    if request.META.get('HTTP_X_FORWARDED_FOR', None):
+        ip = request.META.get("HTTP_X_FORWARDED_FOR")
+    else:
+        ip = request.META.get("REMOTE_ADDR")
     try:
         add_r = record_log(
             login_user=user,
+            ips=ip,
             operation_record=desc,
             date=date,
         )

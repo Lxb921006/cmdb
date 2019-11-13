@@ -335,7 +335,7 @@
             width: auto;
         }
         .tag_package_content>*{
-            padding: 1px 4px;
+            padding: 1px 1px;
         }
         .tag_per_select{
             display: inline-block;
@@ -383,7 +383,22 @@
                         <i class="layui-icon" style="margin-right:0;">&#xe9aa;</i>
                     </button>
                 </div>
-                <div class="tag_package_content"></div>
+                <div class="tag_package_content">
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_machine_manage" data-name="package_name">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="package_name">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name"></div>
+                    </div>
+                    <div class="tag_per_select">
+                        <input type="checkbox" value="cmdb_machine_manage" data-name="package_name">
+                        <div class="tag_lay_icon_ok">
+                            <i class="layui-icon" data-name="package_name">&#xe605;</i>
+                        </div>
+                        <div class="tag_children_name"></div>
+                    </div>
+                </div>
                 <div class="tag_upload_bu">
                     <button id="upload" class="layui-btn">
                         <i class="layui-icon" style="margin-right:0;">&#xe62f;</i> 上传
@@ -487,21 +502,7 @@
 </body>
 <script src="/static/js/jquery-1.11.1/jquery.min.js"></script>
 <script src="/static/js/jquery-1.11.1/jquery-ui-min.js"></script>
-<script src="/static/js/jquery-1.11.1/js.cookie.min.js"></script>
-<script src="/static/js/jquery-1.11.1/jquery-cookies-min.js"></script>
 <script type="text/javascript">
-    function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-    var csrftoken = Cookies.get('csrftoken');
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        }
-    });
     page_number = 1; /*这里只能是要设置一个全局变量,因为以下函数都需要用到,这个变量非常重要*/
     function change_data_number() {
         $.ajax({
@@ -677,6 +678,7 @@
         });
 
         $("#select_all").click(function(){
+            console.log($(this).prop("checked"));
             if($(this).prop("checked")){
                 $("input[type='checkbox']").prop("checked",true);
             }else{
@@ -758,20 +760,13 @@
          /*上传文件*/
         $('#upload').click(function () {
             var upload = $('#tag_upload_file').val();
-            var ipa_name = $("input[data-name='package_name']:checked").val();
             if(upload=='' || upload==null || upload==undefined){
                 alert('请选择要上传的文件.');
                 return false
             }
-            if(ipa_name=='' || ipa_name==false || ipa_name==null || ipa_name==undefined){
-                alert('请勾选对应包名.');
-                return false;
-            }
             var filename = $('#tag_upload_file')[0].files[0];
             var formdata = new FormData();
             formdata.append('filename', filename);
-            formdata.append('ipaname', ipa_name);
-            console.log(formdata);
             $('.tag_content_loading').show(20);
             $.ajax({
                 url: '/cmdb/upload/',
@@ -801,11 +796,6 @@
         $("button[name='action']").click(function(){
             var action = $(this).attr('id');
             var content = $(this).text();
-            var ipa_name = $("input[data-name='package_name']:checked").val();
-             if(ipa_name=='' || ipa_name==false || ipa_name==null || ipa_name==undefined){
-                alert('请勾选对应包名.');
-                return false;
-            }
             if ($("input[type='checkbox']:checked").length <= 0){
                 alert("都没勾选啊,兄弟!");
                 return false;
@@ -817,13 +807,13 @@
                 return false
             }
             if(md5_c=='' || md5_c==null){
-                alert('请先上传文件.');
+                alert('文件上传失败.');
                 return false
             }
             if (confirm("确定"+content+"吗?")){
-                $("input[name='tag_select']:checked").each(function(){
+                $("input[type='checkbox']:checked").each(function(){
                     if ($(this).attr('data-name')!=undefined && action=='update_package'){
-                        var push_package_value = "?project="+$(this).attr('data-name')+"&"+"?ipaname="+ipa_name;
+                        var push_package_value = "?project="+$(this).attr('data-name');
                         var push_package_cmd = "http://118.25.185.60/cmdb/client_update/"+push_package_value;
                         window.open(push_package_cmd);
                     }
@@ -835,8 +825,8 @@
                 });
             }
         });
-        /*包名勾选*/
-        $(document).on('click', '.tag_lay_icon_ok', function() {
+        /*包名选择/勾选*/
+        $(document).on('click', 'tag_lay_icon_ok', function() {
             if ($(this).siblings().prop('checked')){
                 $(this).children().css({'background-color': '#f1f1f1', 'border-color': '#d2d2d2'});
                 $(this).siblings().prop('checked', false);
@@ -853,10 +843,9 @@
             var item_package = {
                 "fish": "fish.ipa",
                 "ddz": "ddz.ipa",
-                "dzdh": "dzdh.ipa",
-                "kxddz": "kxddz.ipa",
+                "dn": "dzdh.ipa",
+                "ph": "kxddz.ipa",
                 "mhby": "mhfish.ipa,kbfish.ipa",
-                "kbby": "kbby.ipa",
             };
             var project = $(this).attr("data-name");
 

@@ -40,12 +40,11 @@ def is_login(request):
     if request.method == 'POST':
         username = request.POST.get('username', None)
         password = request.POST.get('passwd', None)
-        code = request.POST.get('code', None)
         users = authenticate(username=username, password=password)
         if users is not None:
             if users.is_active:
                 login(request, users)
-                public_method.Opratings_log(
+                public_method.operating_log(
                                             request.user,
                                             'login',
                                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -83,10 +82,10 @@ def home(request):
 
 
 def is_logout(request):
-    public_method.Opratings_log(request.user,
-                              "logout",
-                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                              )
+    public_method.operating_log(request.user,
+                                "logout",
+                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                )
     logout(request)
     return HttpResponseRedirect(reverse('cmdb:login'))
 
@@ -284,7 +283,7 @@ def add_platform(request):
                         msg['status'] = '%s already exists.' % project
                 else:
                     msg['status'] = '%s already exists.' % project
-            public_method.Opratings_log(
+            public_method.operating_log(
                                         request.user,
                                         'add platform {}'.format(project),
                                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -317,7 +316,7 @@ def edit_platform(request):
                 db_project = Item.objects.filter(project=project).values('desc')
                 if db_project[0]['desc'] != desc:
                     Item.objects.filter(project=project).update(desc=desc)
-            public_method.Opratings_log(
+            public_method.operating_log(
                                         request.user,
                                         'edit platform {}'.format(project),
                                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -344,20 +343,20 @@ def del_platform(request):
                     msg = {'status': 'failure.'}
                 else:
                     msg = {'status': 'success.'}
-                    public_method.Opratings_log(request.user,
-                                              'delete project {}'.format(project),
-                                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                              )
+                    public_method.operating_log(request.user,
+                                                'delete project {}'.format(project),
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                )
         else:
             try:
                 Item.objects.filter(project=recv_data).delete()
                 Servers.objects.filter(project=recv_data).delete()
             except:
                 msg = {'status': 'failure.'}
-            public_method.Opratings_log(request.user,
-                                      'delete project {}'.format(recv_data),
-                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                      )
+            public_method.operating_log(request.user,
+                                        'delete project {}'.format(recv_data),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        )
         return JsonResponse(msg)
 
 
@@ -512,10 +511,10 @@ def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
             if recv_data in all_perms:
                 add_p = Permission.objects.get(codename=recv_data)
                 User.objects.get(username=user).user_permissions.add(add_p)
-                public_method.Opratings_log(request.user,
-                                          '{} add permissions {}'.format(user, add_p),
-                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                          )
+                public_method.operating_log(request.user,
+                                            '{} add permissions {}'.format(user, add_p),
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            )
             else:
                 msg['status'] = '请在后台先添加好对应权限.'
     for db_data in user_permis_list:
@@ -526,10 +525,10 @@ def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
     for del_perms_data in del_perms:
         del_p = Permission.objects.get(codename=del_perms_data)
         User.objects.get(username=user).user_permissions.remove(del_p)
-        public_method.Opratings_log(request.user,
-                                  '{} remove permissions {}'.format(user, del_p),
-                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                  )
+        public_method.operating_log(request.user,
+                                    '{} remove permissions {}'.format(user, del_p),
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    )
     add_perms.clear()
     del_perms.clear()
     all_perms.clear()
@@ -562,7 +561,6 @@ def group_edit_permissions(request):
     group_perm_opra = Group.objects.get(name=group_name)
     group_perm = Group.objects.get(name=group_name).permissions.values('codename')
     group_ori_perm = [i.get('codename') for i in group_perm]
-    print(perm_data)
     for a_item in perm_data:
         if a_item not in group_ori_perm:
             add_p = Permission.objects.get(codename=a_item)
@@ -616,6 +614,7 @@ def page_record_operation_log(request):
             start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                         ).count()
@@ -635,6 +634,7 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                     )[
@@ -644,6 +644,7 @@ def page_record_operation_log(request):
             end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                         ).count()
@@ -663,11 +664,13 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                    Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data),
-                                                    date__range=(start_time, end_time)
+                                                   date__range=(start_time, end_time)
                                                    )[real_cur_page_number:real_change_page_number]
         else:
             all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data)
                                                         ).count()
             if all_datas_count == 0:
@@ -685,6 +688,7 @@ def page_record_operation_log(request):
             if real_change_page_number > all_datas_count:
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data))[
                                                     real_cur_page_number:real_change_page_number]
 
@@ -693,6 +697,7 @@ def page_record_operation_log(request):
             start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                         ).count()
@@ -712,6 +717,7 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                     )[
@@ -721,6 +727,7 @@ def page_record_operation_log(request):
             end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                         ).count()
@@ -740,12 +747,14 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                     )[
                          real_cur_page_number:real_change_page_number]
         else:
-            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data)
                                                         ).count()
             if all_datas_count == 0:
@@ -762,7 +771,8 @@ def page_record_operation_log(request):
                 real_change_page_number = pages * change_page_number
             if real_change_page_number > all_datas_count:
                 real_change_page_number = all_datas_count
-            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data))[real_cur_page_number:real_change_page_number]
     for item in range(len(show_datas)):
         data_list.append({"login_user": show_datas[item].login_user,
@@ -773,8 +783,11 @@ def page_record_operation_log(request):
 
 
 def db_check(request):
-    user_mail = User.objects.filter(username='lxb').values('email')
-    return HttpResponse('res:%s' % user_mail)
+    if request.META.get('HTTP_X_FORWARDED_FOR'):
+        ip = request.META.get("HTTP_X_FORWARDED_FOR")
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return HttpResponse('res:%s' % ip)
 
 
 @login_required(login_url='/cmdb/is_login/')
@@ -787,7 +800,7 @@ def server_action(request):
             message = message.decode('utf-8')
             project, ip, cmd = message.split('-')
             ips = Servers.objects.filter(ip=str(ip)).count()
-            public_method.Opratings_log(request.user,
+            public_method.operating_log(request.user,
                                         'machine operating cmd {}, ip {}'.format(cmd, ip),
                                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                         )
@@ -841,7 +854,7 @@ def platform_action(request):
                     ip_info = item.get('ip', None)
                     p_info = public_method.get_servers_info(projects, projects + "-" + ip_info)
                     request.websocket.send("{}-{}-{}".format(projects, ip_info, cmd))
-                    public_method.Opratings_log(request.user,
+                    public_method.operating_log(request.user,
                                                 '{}-{} operating cmd {}'.format(projects, ip_info, cmd),
                                                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                                 )
@@ -886,7 +899,7 @@ def client_update(request):  # 更新包
             projects = Item.objects.filter(project=item).count()
             if projects == 1:
                 res = public_method.push_package(item, ipa_name)
-                public_method.Opratings_log(request.user,
+                public_method.operating_log(request.user,
                                             'project {} push package.'.format(projects),
                                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                             )
@@ -904,7 +917,6 @@ def client_update(request):  # 更新包
 def add_servers_page(request):  # 这里是增加服务器页面的基础数据展示
     all_record_log_data = Servers.objects.all()[0:10]
     total_number = Servers.objects.all().count()
-    print('total_number:%s' % total_number)
     total_page = divmod(total_number, 10)
     if total_page[1] == 0:
         total_page = total_page[0]
@@ -996,6 +1008,7 @@ def add_servers_page(request):
 
 
 # 添加服务器
+@public_method.Get_Pretty('add servers')
 @login_required(login_url='/cmdb/is_login/')
 @csrf_exempt
 def create_servers(request):
@@ -1004,16 +1017,16 @@ def create_servers(request):
     if not isinstance(json.loads(server_info), list):
         msg['status'] = 'add servers failure.'
     else:
-        project, ip, ram, cpu, disk, os = json.loads(server_info)
+        project, ip, ram, cpu, disk, system = json.loads(server_info)
         try:
-            add_servers = Servers(project=project, ip=ip, ram=ram, cpu=cpu, hard_disk=disk, os=os)
+            add_servers = Servers(project=project, ip=ip, ram=ram, cpu=cpu, hard_disk=disk, os=system)
             add_servers.save()
         except:
             msg['status'] = 'add server %s failed.' % ip
-        public_method.Opratings_log(request.user,
-                                  '{} add servers {}.'.format(project, ip),
-                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                  )
+        public_method.operating_log(request.user,
+                                    '{} add servers {}.'.format(project, ip),
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    )
     return JsonResponse(msg)
 
 
@@ -1032,20 +1045,20 @@ def del_servers(request):
                 msg = {'status': 'failure.'}
             else:
                 msg = {'status': 'success.'}
-                public_method.Opratings_log(request.user,
-                                          'delete servers {}'.format(ip),
-                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                          )
+                public_method.operating_log(request.user,
+                                            'delete servers {}'.format(ip),
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                           )
     else:
         project, ip = json.loads(del_data).split('-')
         try:
             Servers.objects.filter(project=project, ip=ip).delete()
         except:
             msg = {'status': 'failure.'}
-        public_method.Opratings_log(request.user,
-                                  'delete servers {}'.format(ip),
-                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                  )
+        public_method.operating_log(request.user,
+                                    'delete servers {}'.format(ip),
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    )
     return JsonResponse(msg)
 
 
@@ -1246,10 +1259,10 @@ def add_del_edit_user(request):
                 add_user.groups.add(recv_group)
             except:
                 msg['status'] = '添加失败'
-        public_method.Opratings_log(request.user,
-                                  'add user {}'.format(check_user),
-                                  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                  )
+        public_method.operating_log(request.user,
+                                    'add user {}'.format(check_user),
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    )
 
     # 删除账户
     if action == 'delete':
@@ -1264,10 +1277,10 @@ def add_del_edit_user(request):
                         User.objects.filter(username=u).delete()
                     except:
                         msg['status'] = '删除失败'
-                    public_method.Opratings_log(request.user,
-                                              'delete user {}'.format(del_u),
-                                              datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                              )
+                    public_method.operating_log(request.user,
+                                                'delete user {}'.format(del_u),
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                )
         else:
             del_u = User.objects.filter(username=json.loads(user))[0]
             recv_group = Group.objects.filter(name=user_type)[0]
@@ -1276,10 +1289,10 @@ def add_del_edit_user(request):
                 User.objects.filter(username=json.loads(user)).delete()
             except:
                 msg['status'] = '删除失败'
-            public_method.Opratings_log(request.user,
-                                      'delete user {}'.format(del_u),
-                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                      )
+            public_method.operating_log(request.user,
+                                        'delete user {}'.format(del_u),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        )
 
     # 账户启用
     if action == 'enable':
@@ -1295,11 +1308,10 @@ def add_del_edit_user(request):
         except:
             msg['status'] = '用户启用失败'
         else:
-            public_method.Opratings_log(request.user,
-                                      'enable user {}'.format(user),
-                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                      )
-
+            public_method.operating_log(request.user,
+                                        'enable user {}'.format(user),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        )
 
     # 账户禁用
     if action == 'disable':
@@ -1315,10 +1327,10 @@ def add_del_edit_user(request):
         except:
             msg['status'] = '用户禁用失败'
         else:
-            public_method.Opratings_log(request.user,
-                                      'disable user {}'.format(user),
-                                      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                      )
+            public_method.operating_log(request.user,
+                                        'disable user {}'.format(user),
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        )
 
     # 修改密码
     if action == 'change_password':
@@ -1341,10 +1353,10 @@ def add_del_edit_user(request):
             except:
                 msg['status'] = '保存失败'
             else:
-                public_method.Opratings_log(request.user,
-                                          'change user {} password'.format(user),
-                                          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                          )
+                public_method.operating_log(request.user,
+                                            'change user {} password'.format(user),
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            )
 
     return JsonResponse(msg)
 

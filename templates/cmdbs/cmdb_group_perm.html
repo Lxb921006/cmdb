@@ -411,7 +411,21 @@
 <script src="/static/js/jquery-1.11.1/jquery-ui-min.js"></script>
 <script src="/static/js/jquery-1.11.1/jquery-color-master/jquery.color.js"></script>
 <script src="/static/js/jquery-1.11.1/jquery-color-master/jquery.color.svg-names.js"></script>
+<script src="/static/js/jquery-1.11.1/js.cookie.min.js"></script>
+<script src="/static/js/jquery-1.11.1/jquery-cookies-min.js"></script>
 <script type="text/javascript">
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    var csrftoken = Cookies.get('csrftoken');
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
     /*这里选择查看对应用户的权限*/
     function show_every_user_perms() {
         $("input[type='checkbox']:checked").each(function () {

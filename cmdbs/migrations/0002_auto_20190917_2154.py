@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import cmdbs.html_helper
 
 
 class Migration(migrations.Migration):

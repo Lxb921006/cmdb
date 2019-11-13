@@ -6,7 +6,7 @@ from django.template import Template, Context
 from django.template.loader import get_template
 from django.core.mail import send_mail
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
 from dwebsocket.decorators import accept_websocket, require_websocket
 from django.contrib.auth.decorators import permission_required
@@ -34,21 +34,21 @@ from django.contrib.admin.options import get_content_type_for_model
 # Create your views here.
 
 
-@csrf_exempt
+@csrf_protect
 def is_login(request):
     errors = {'error': ''}
     if request.method == 'POST':
         username = request.POST.get('username', None)
         password = request.POST.get('passwd', None)
-        code = request.POST.get('code', None)
         users = authenticate(username=username, password=password)
         if users is not None:
             if users.is_active:
                 login(request, users)
-                public_method.Opratings_log(
+                public_method.operating_log(
                                             request.user,
                                             'login',
-                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            request,
                                             )
                 return redirect(reverse('cmdb:index'))
 
@@ -59,19 +59,7 @@ def is_login(request):
     return render(request, 'cmdbs/login_main.html', errors)
 
 
-@csrf_exempt
-def send_verification_code(request):
-    if request.method == 'POST':
-        user = request.POST.get('user', None)
-        check_user = User.objects.filter(username=user).count()
-        if check_user == 1:
-            user_mail = User.objects.filter(username=user).values('email')
-            public_method.sendmail(user, user_mail[0].get('email'))
-        else:
-            return JsonResponse({'msg': -1})
-        return JsonResponse({'msg': 'success'})
-
-
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
 def index(request):
     return render(request, 'cmdbs/index_change.html', {'login_user': request.user})
@@ -83,9 +71,10 @@ def home(request):
 
 
 def is_logout(request):
-    public_method.Opratings_log(request.user,
+    public_method.operating_log(request.user,
                                 "logout",
-                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                request,
                                 )
     logout(request)
     return HttpResponseRedirect(reverse('cmdb:login'))
@@ -178,8 +167,8 @@ def package_update(request):  # 基础数据展示
     return render(request, 'cmdbs/cmdb_package_update.html', msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def platform_img(request):
     projects = request.POST.get('data', None)
     platforms_list = []
@@ -197,8 +186,8 @@ def platform_img(request):
     return JsonResponse({'platform_name': platforms_list, 'platform_number': servers_number_list, 'all_data': all_datas})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def platform_show_ajax(request):
     recv_cur_page_number = request.POST.get('cur_page', None)
     recv_change_page_number = request.POST.get('change_page_number', None)
@@ -261,8 +250,8 @@ def platform_show_ajax(request):
 
 
 # 添加平台
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def add_platform(request):
     if request.method == 'POST':
         server_info = request.POST.get('data', None)
@@ -284,10 +273,11 @@ def add_platform(request):
                         msg['status'] = '%s already exists.' % project
                 else:
                     msg['status'] = '%s already exists.' % project
-            public_method.Opratings_log(
+            public_method.operating_log(
                                         request.user,
                                         'add platform {}'.format(project),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                     )
         return JsonResponse(msg)
     return render(request, 'cmdbs/add_platform.html')
@@ -301,8 +291,8 @@ def edit_platform_page(request):
 
 
 # 修改平台信息
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def edit_platform(request):
     if request.method == 'POST':
         data_list = request.POST.get('data', None)
@@ -317,10 +307,11 @@ def edit_platform(request):
                 db_project = Item.objects.filter(project=project).values('desc')
                 if db_project[0]['desc'] != desc:
                     Item.objects.filter(project=project).update(desc=desc)
-            public_method.Opratings_log(
+            public_method.operating_log(
                                         request.user,
                                         'edit platform {}'.format(project),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                      )
         else:
             message['status'] = 'No data received.'
@@ -328,8 +319,8 @@ def edit_platform(request):
 
 
 # 删除平台
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def del_platform(request):
     if request.method == 'POST':
         del_data = request.POST.get('del_data', None)
@@ -344,9 +335,10 @@ def del_platform(request):
                     msg = {'status': 'failure.'}
                 else:
                     msg = {'status': 'success.'}
-                    public_method.Opratings_log(request.user,
+                    public_method.operating_log(request.user,
                                                 'delete project {}'.format(project),
-                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                request,
                                                 )
         else:
             try:
@@ -354,15 +346,16 @@ def del_platform(request):
                 Servers.objects.filter(project=recv_data).delete()
             except:
                 msg = {'status': 'failure.'}
-            public_method.Opratings_log(request.user,
+            public_method.operating_log(request.user,
                                         'delete project {}'.format(recv_data),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                         )
         return JsonResponse(msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def server_base_page(request):  # 基础数据展示
     all_record_log_data = Servers.objects.all()[0:10]
     total_number = Servers.objects.all().count()
@@ -377,8 +370,8 @@ def server_base_page(request):  # 基础数据展示
     return render(request, 'cmdbs/Server_page_change.html', msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def show_ajax_server(request):
     recv_cur_page_number = request.POST.get('cur_page', None)
     recv_change_page_number = request.POST.get('change_page_number', None)
@@ -477,8 +470,8 @@ def permissions(request):
     return render(request, 'cmdbs/cmdb_permission.html', {'all_user': all_user, 'login_user': request.user})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def check_permissions(request):  # 这里是查看对应用户已经有的权限
     types = ''
     user = request.POST.get('user', None)
@@ -490,8 +483,8 @@ def check_permissions(request):  # 这里是查看对应用户已经有的权限
     return JsonResponse({'user_perms': user_permis_list, 'user_type': types})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
     app_name = 'cmdbs.'
     add_perms = list()
@@ -512,9 +505,10 @@ def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
             if recv_data in all_perms:
                 add_p = Permission.objects.get(codename=recv_data)
                 User.objects.get(username=user).user_permissions.add(add_p)
-                public_method.Opratings_log(request.user,
+                public_method.operating_log(request.user,
                                             '{} add permissions {}'.format(user, add_p),
-                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            request,
                                             )
             else:
                 msg['status'] = '请在后台先添加好对应权限.'
@@ -526,9 +520,10 @@ def add_del_permissions(request):  # 这里是添加,删除对应用户的权限
     for del_perms_data in del_perms:
         del_p = Permission.objects.get(codename=del_perms_data)
         User.objects.get(username=user).user_permissions.remove(del_p)
-        public_method.Opratings_log(request.user,
+        public_method.operating_log(request.user,
                                     '{} remove permissions {}'.format(user, del_p),
-                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                    request,
                                     )
     add_perms.clear()
     del_perms.clear()
@@ -542,8 +537,8 @@ def group_permissions(request):
     return render(request, 'cmdbs/cmdb_group_perm.html', {'all_groups': all_groups})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def group_check_permission(request):
     groups = request.POST.get('groups', None)
     g = Group.objects.get(name=groups).permissions.values('codename')
@@ -551,8 +546,8 @@ def group_check_permission(request):
     return JsonResponse({'user_perms': groups_perm})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def group_edit_permissions(request):
     msg = {'status': 'success'}
     res = []
@@ -562,7 +557,6 @@ def group_edit_permissions(request):
     group_perm_opra = Group.objects.get(name=group_name)
     group_perm = Group.objects.get(name=group_name).permissions.values('codename')
     group_ori_perm = [i.get('codename') for i in group_perm]
-    print(perm_data)
     for a_item in perm_data:
         if a_item not in group_ori_perm:
             add_p = Permission.objects.get(codename=a_item)
@@ -580,8 +574,8 @@ def group_edit_permissions(request):
     return JsonResponse(msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def record_operation_log(request):  # 基础数据展示
     all_record_log_data = record_log.objects.all()[0:10]
     total_number = record_log.objects.all().count()
@@ -596,8 +590,8 @@ def record_operation_log(request):  # 基础数据展示
     return render(request, 'cmdbs/Cmdb_oprating_record.html', msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def page_record_operation_log(request):
     recv_cur_page_number = request.POST.get('cur_page', None)
     recv_change_page_number = request.POST.get('change_page_number', None)
@@ -616,6 +610,7 @@ def page_record_operation_log(request):
             start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                         ).count()
@@ -635,6 +630,7 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                     )[
@@ -644,6 +640,7 @@ def page_record_operation_log(request):
             end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                         ).count()
@@ -663,11 +660,13 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                    Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data),
                                                    date__range=(start_time, end_time)
                                                    )[real_cur_page_number:real_change_page_number]
         else:
             all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data)
                                                         ).count()
             if all_datas_count == 0:
@@ -685,6 +684,7 @@ def page_record_operation_log(request):
             if real_change_page_number > all_datas_count:
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data))[
                                                     real_cur_page_number:real_change_page_number]
 
@@ -693,6 +693,7 @@ def page_record_operation_log(request):
             start_time = datetime.datetime.strptime(begin_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                         ).count()
@@ -712,6 +713,7 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__gte=start_time
                                                     )[
@@ -721,6 +723,7 @@ def page_record_operation_log(request):
             end_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
             all_datas_count = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                         ).count()
@@ -740,12 +743,14 @@ def page_record_operation_log(request):
                 real_change_page_number = all_datas_count
             show_datas = record_log.objects.filter(
                                                         Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data),
                                                         date__range=(start_time, end_time)
                                                     )[
                          real_cur_page_number:real_change_page_number]
         else:
-            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+            all_datas_count = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                        Q(ips__icontains=search_data) |
                                                         Q(login_user__icontains=search_data)
                                                         ).count()
             if all_datas_count == 0:
@@ -762,10 +767,12 @@ def page_record_operation_log(request):
                 real_change_page_number = pages * change_page_number
             if real_change_page_number > all_datas_count:
                 real_change_page_number = all_datas_count
-            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data)|
+            show_datas = record_log.objects.filter(Q(operation_record__icontains=search_data) |
+                                                   Q(ips__icontains=search_data) |
                                                    Q(login_user__icontains=search_data))[real_cur_page_number:real_change_page_number]
     for item in range(len(show_datas)):
         data_list.append({"login_user": show_datas[item].login_user,
+                          "ips": show_datas[item].ips,
                           "operation_record": show_datas[item].operation_record,
                           "date": show_datas[item].date,
                           })
@@ -773,12 +780,15 @@ def page_record_operation_log(request):
 
 
 def db_check(request):
-    user_mail = User.objects.filter(username='lxb').values('email')
-    return HttpResponse('res:%s' % user_mail)
+    if request.META.get('HTTP_X_FORWARDED_FOR'):
+        ip = request.META.get("HTTP_X_FORWARDED_FOR")
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return HttpResponse('res:%s' % ip)
 
 
-@login_required(login_url='/cmdb/is_login/')
 @accept_websocket
+@login_required(login_url='/cmdb/is_login/')
 def server_action(request):
     if not request.is_websocket():  # 判断是不是websocket连接
         return render(request, 'cmdbs/jumpage_servers.html')
@@ -786,12 +796,13 @@ def server_action(request):
         for message in request.websocket:
             message = message.decode('utf-8')
             project, ip, cmd = message.split('-')
-            ips = Servers.objects.filter(ip=str(ip)).count()
-            public_method.Opratings_log(request.user,
+            ipn = Servers.objects.filter(ip=str(ip)).count()
+            public_method.operating_log(request.user,
                                         'machine operating cmd {}, ip {}'.format(cmd, ip),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                         )
-            if ips > 0:
+            if ipn > 0:
                 m_info = public_method.get_servers_info(project, project+"-"+ip)
                 command = public_method.running_cmd(cmd)
                 request.websocket.send("{}-{}-{}".format(project, ip, cmd))
@@ -824,8 +835,8 @@ def server_action(request):
                 request.websocket.send('the {} not exists.'.format(ip))
 
 
-@login_required(login_url='/cmdb/is_login/')
 @accept_websocket
+@login_required(login_url='/cmdb/is_login/')
 def platform_action(request):
     if not request.is_websocket():  # 判断是不是websocket连接
         return render(request, 'cmdbs/jumpage_platforms.html')
@@ -834,16 +845,17 @@ def platform_action(request):
             message = message.decode('utf-8')
             projects, cmd = message.split("-")
             ip_list = Servers.objects.filter(project=str(projects)).values('ip')
-            ips = Servers.objects.filter(project=str(projects)).count()
-            if ips > 0:
+            ipn = Servers.objects.filter(project=str(projects)).count()
+            if ipn > 0:
                 for item in ip_list:
                     command = public_method.running_cmd(cmd)
                     ip_info = item.get('ip', None)
                     p_info = public_method.get_servers_info(projects, projects + "-" + ip_info)
                     request.websocket.send("{}-{}-{}".format(projects, ip_info, cmd))
-                    public_method.Opratings_log(request.user,
+                    public_method.operating_log(request.user,
                                                 '{}-{} operating cmd {}'.format(projects, ip_info, cmd),
-                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                request,
                                                 )
                     try:
                         if p_info.split().__len__() == 5:
@@ -874,8 +886,8 @@ def platform_action(request):
                 request.websocket.send('the project {} not exists.'.format(projects))
 
 
-@login_required(login_url='/cmdb/is_login/')
 @accept_websocket
+@login_required(login_url='/cmdb/is_login/')
 def client_update(request):  # 更新包
     if not request.is_websocket():  # 判断是不是websocket连接
         return render(request, 'cmdbs/jumpage_client.html')
@@ -886,9 +898,10 @@ def client_update(request):  # 更新包
             projects = Item.objects.filter(project=item).count()
             if projects == 1:
                 res = public_method.push_package(item, ipa_name)
-                public_method.Opratings_log(request.user,
+                public_method.operating_log(request.user,
                                             'project {} push package.'.format(projects),
-                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            request,
                                             )
                 if res != -1 or not res.std_err:
                     one_by_one = res.std_out.decode('gbk')
@@ -904,7 +917,6 @@ def client_update(request):  # 更新包
 def add_servers_page(request):  # 这里是增加服务器页面的基础数据展示
     all_record_log_data = Servers.objects.all()[0:10]
     total_number = Servers.objects.all().count()
-    print('total_number:%s' % total_number)
     total_page = divmod(total_number, 10)
     if total_page[1] == 0:
         total_page = total_page[0]
@@ -916,8 +928,8 @@ def add_servers_page(request):  # 这里是增加服务器页面的基础数据�
     return render(request, 'cmdbs/add_servers.html', msg)
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def search_add_servers(request):
     recv_cur_page_number = request.POST.get('cur_page', None)
     recv_change_page_number = request.POST.get('change_page_number', None)
@@ -996,8 +1008,8 @@ def add_servers_page(request):
 
 
 # 添加服务器
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def create_servers(request):
     server_info = request.POST.get('data', None)
     msg = {'status': 'success'}
@@ -1010,16 +1022,17 @@ def create_servers(request):
             add_servers.save()
         except:
             msg['status'] = 'add server %s failed.' % ip
-        public_method.Opratings_log(request.user,
+        public_method.operating_log(request.user,
                                     '{} add servers {}.'.format(project, ip),
-                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                    request,
                                     )
     return JsonResponse(msg)
 
 
 # 删除服务器
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def del_servers(request):
     del_data = request.POST.get('del_data', None)
     msg = {'status': 'success.'}
@@ -1032,19 +1045,21 @@ def del_servers(request):
                 msg = {'status': 'failure.'}
             else:
                 msg = {'status': 'success.'}
-                public_method.Opratings_log(request.user,
+                public_method.operating_log(request.user,
                                             'delete servers {}'.format(ip),
-                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                           )
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            request,
+                                            )
     else:
         project, ip = json.loads(del_data).split('-')
         try:
             Servers.objects.filter(project=project, ip=ip).delete()
         except:
             msg = {'status': 'failure.'}
-        public_method.Opratings_log(request.user,
+        public_method.operating_log(request.user,
                                     'delete servers {}'.format(ip),
-                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                    request,
                                     )
     return JsonResponse(msg)
 
@@ -1057,8 +1072,8 @@ def edit_servers_page(request):
 
 
 # 修改服务器信息
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def edit_servers(request):
     data_list = request.POST.get('data', None)
     message = {'status': 'success'}
@@ -1117,12 +1132,13 @@ def user_page(request):
     return render(request, 'cmdbs/user_manage.html', msg)
 
 
+@login_required(login_url='/cmdb/is_login/')
 def user_infos_page(request):
     return render(request, 'cmdbs/user_infos.html')
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def userinfo(request):
     us = request.POST.get('user', None)
     user_type = {}
@@ -1149,8 +1165,8 @@ def add_user_page(request):
     return render(request, 'cmdbs/addusers.html', {'groups': groups})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def manage_user_turn_page(request):
     recv_cur_page_number = request.POST.get('cur_page', None)
     recv_change_page_number = request.POST.get('change_page_number', None)
@@ -1223,8 +1239,8 @@ def manage_user_turn_page(request):
     return JsonResponse({'total_number': all_datas_count, 'data_info': data_list, 'total_pages': pages, "user_type": user_type})
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def add_del_edit_user(request):
     user = request.POST.get('username', None)
     email = request.POST.get('email', None)
@@ -1246,7 +1262,7 @@ def add_del_edit_user(request):
                 add_user.groups.add(recv_group)
             except:
                 msg['status'] = '添加失败'
-        public_method.Opratings_log(request.user,
+        public_method.operating_log(request.user,
                                     'add user {}'.format(check_user),
                                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                     )
@@ -1264,9 +1280,10 @@ def add_del_edit_user(request):
                         User.objects.filter(username=u).delete()
                     except:
                         msg['status'] = '删除失败'
-                    public_method.Opratings_log(request.user,
+                    public_method.operating_log(request.user,
                                                 'delete user {}'.format(del_u),
-                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                request,
                                                 )
         else:
             del_u = User.objects.filter(username=json.loads(user))[0]
@@ -1276,9 +1293,10 @@ def add_del_edit_user(request):
                 User.objects.filter(username=json.loads(user)).delete()
             except:
                 msg['status'] = '删除失败'
-            public_method.Opratings_log(request.user,
+            public_method.operating_log(request.user,
                                         'delete user {}'.format(del_u),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                         )
 
     # 账户启用
@@ -1295,9 +1313,10 @@ def add_del_edit_user(request):
         except:
             msg['status'] = '用户启用失败'
         else:
-            public_method.Opratings_log(request.user,
+            public_method.operating_log(request.user,
                                         'enable user {}'.format(user),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                         )
 
     # 账户禁用
@@ -1314,9 +1333,10 @@ def add_del_edit_user(request):
         except:
             msg['status'] = '用户禁用失败'
         else:
-            public_method.Opratings_log(request.user,
+            public_method.operating_log(request.user,
                                         'disable user {}'.format(user),
-                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        request,
                                         )
 
     # 修改密码
@@ -1340,17 +1360,13 @@ def add_del_edit_user(request):
             except:
                 msg['status'] = '保存失败'
             else:
-                public_method.Opratings_log(request.user,
+                public_method.operating_log(request.user,
                                             'change user {} password'.format(user),
-                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            request,
                                             )
 
     return JsonResponse(msg)
-
-
-@login_required(login_url='/cmdb/is_login/')
-def clear_cache(request):
-    return render(request, 'cmdbs/clear_cache.html')
 
 
 @login_required(login_url='/cmdb/is_login/')
@@ -1358,15 +1374,8 @@ def check_web_log(request):
     return render(request, 'cmdbs/check_web_log.html')
 
 
+@csrf_protect
 @login_required(login_url='/cmdb/is_login/')
-def machine_status(request):
-    ip = Servers.objects.all()
-    public_method.get_machine_data()
-    return render(request, 'cmdbs/machine_status.html', {'ip': ip})
-
-
-@login_required(login_url='/cmdb/is_login/')
-@csrf_exempt
 def recv_file(request):
     if request.method == 'POST':
         data = request.FILES.get('filename', None)
