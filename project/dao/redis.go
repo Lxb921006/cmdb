@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"time"
@@ -47,16 +49,15 @@ func NewRedisDb(pool *redis.Client, md map[string]Md) *RedisDb {
 	}
 }
 
-func (r *RedisDb) RquestVerify(user, token string) (err error) {
-	getToken, err := r.pool.Get(user).Result()
-	if err != nil {
-		err = errors.New("token已失效, 请重新登录")
-		return
-	}
+func (r *RedisDb) RquestVerify(user, sign string) (err error) {
+	secret := "awdjSDJIERASD0djkad0032OKJFA0SDJAS01JEKSAD"
+	splice := user + secret
+	h := sha1.New()
+	h.Write([]byte(splice))
+	verify := hex.EncodeToString(h.Sum(nil))
 
-	if getToken != token {
-		err = errors.New("token已过期, 请重新登录")
-		return
+	if verify != sign {
+		return errors.New("签名验证失败")
 	}
 
 	return
