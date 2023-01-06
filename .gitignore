@@ -18,6 +18,7 @@
 # vendor/
 main
 # Go workspace file
+Config.*
 project/.DS_Store
 .DS_Store
 project/config/dbConfig.go

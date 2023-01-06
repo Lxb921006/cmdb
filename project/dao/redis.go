@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lxb921006/cmdb/project/config"
 	"github.com/go-redis/redis"
 )
 
@@ -50,8 +51,7 @@ func NewRedisDb(pool *redis.Client, md map[string]Md) *RedisDb {
 }
 
 func (r *RedisDb) RquestVerify(user, sign string) (err error) {
-	secret := "awdjSDJIERASD0djkad0032OKJFA0SDJAS01JEKSAD"
-	splice := user + secret
+	splice := user + config.Sign
 	h := sha1.New()
 	h.Write([]byte(splice))
 	verify := hex.EncodeToString(h.Sum(nil))
