@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lxb921006/cmdb/project/middleware"
 	"github.com/Lxb921006/cmdb/project/routes/cron"
+	"github.com/Lxb921006/cmdb/project/routes/web"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,7 @@ func SetupRouter() *http.Server {
 	router.Use(middleware.AllowCos(), middleware.TokenVerify())
 
 	cron.CronRouter(router)
+	web.WebRouter(router)
 
 	t := &http.Server{
 		Addr:           ":9294",
