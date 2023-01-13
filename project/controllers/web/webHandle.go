@@ -1,6 +1,9 @@
 package web
 
-import "os/exec"
+import (
+	"errors"
+	"os/exec"
+)
 
 type WebHandle struct {
 	Path string
@@ -23,9 +26,9 @@ func (wh *WebHandle) ClearCache() (err error) {
 }
 
 func (wh *WebHandle) ExecuteCmd(cmd string) (err error) {
-	_, err = exec.Command("sh", cmd, wh.Path).Output()
+	out, err := exec.Command("sh", cmd, wh.Path).Output()
 	if err != nil {
-		return
+		return errors.New(string(out))
 	}
 	return
 }
