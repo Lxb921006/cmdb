@@ -6,9 +6,9 @@ import (
 )
 
 func WebRouter(r *gin.Engine) {
-	user := r.Group("/web")
+	group := r.Group("/web")
 	{
-		user.POST("/createlog", web.CreateWebLogPath)
-		user.POST("/clearcache", web.ClearCache)
+		group.POST("/createlog", web.CreateWebLogPath)
+		group.POST("/clearcache", web.ClearCache)
 	}
 }

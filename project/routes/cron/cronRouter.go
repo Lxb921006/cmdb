@@ -6,9 +6,9 @@ import (
 )
 
 func CronRouter(r *gin.Engine) {
-	user := r.Group("/cron")
+	group := r.Group("/cron")
 	{
-		user.POST("/run", cron.Run)
-		user.POST("/stop", cron.Stop)
+		group.POST("/run", cron.Run)
+		group.POST("/stop", cron.Stop)
 	}
 }
