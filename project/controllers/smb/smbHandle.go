@@ -1,7 +1,6 @@
 package smb
 
 import (
-	"fmt"
 	"os/exec"
 )
 
@@ -17,8 +16,9 @@ type SmbHandle struct {
 type Option func(*SmbHandle)
 
 func (sh *SmbHandle) AddSmbUser() (err error) {
-	cmd := fmt.Sprintf("sh %s %s %s %s %s %s", AddSmbUserScript, sh.User, sh.PassWd, sh.ShareName, sh.Path, sh.IsWrite)
-	_, err = exec.Command("/bin/bash", "-c", cmd).Output()
+	// cmd := fmt.Sprintf("%s %s %s %s %s %s", AddSmbUserScript, sh.User, sh.PassWd, sh.ShareName, sh.Path, sh.IsWrite)
+	// out, err := exec.Command("/bin/bash", "-c", cmd).Output() ubuntu
+	_, err = exec.Command("sh", AddSmbUserScript, sh.User, sh.PassWd, sh.ShareName, sh.Path, sh.IsWrite).Output()
 	if err != nil {
 		return
 	}
@@ -27,8 +27,7 @@ func (sh *SmbHandle) AddSmbUser() (err error) {
 }
 
 func (sh *SmbHandle) DelSmbUser() (err error) {
-	cmd := fmt.Sprintf("sh %s \"%s\" %s", DelSmbUserScript, sh.User, sh.ShareName)
-	_, err = exec.Command("/bin/bash", "-c", cmd).Output()
+	_, err = exec.Command("sh", DelSmbUserScript, sh.User, sh.ShareName).Output()
 	if err != nil {
 		return
 	}
@@ -37,8 +36,7 @@ func (sh *SmbHandle) DelSmbUser() (err error) {
 }
 
 func (sh *SmbHandle) UpdateSmbUser() (err error) {
-	cmd := fmt.Sprintf("sh %s %s %s %s %s %s", UpdateSmbUserScript, sh.User, sh.PassWd, sh.ShareName, sh.Path, sh.IsWrite)
-	_, err = exec.Command("/bin/bash", "-c", cmd).Output()
+	_, err = exec.Command("sh", UpdateSmbUserScript, sh.User, sh.PassWd, sh.ShareName, sh.Path, sh.IsWrite).Output()
 	if err != nil {
 		return
 	}
