@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/Lxb921006/cmdb/project/config"
 	"github.com/Lxb921006/cmdb/project/dao"
 	"github.com/Lxb921006/cmdb/project/routes/root"
 )
@@ -17,7 +16,7 @@ func main() {
 	}
 
 	//初始化redis连接池
-	dao.InitPoolRds(config.RedisConAddre, config.RedisUserDb)
+	dao.InitPoolRds()
 	if dao.RdPool == nil {
 		log.Fatalf("redis连接失败")
 		return
@@ -26,5 +25,8 @@ func main() {
 
 	//初始化gin并启动
 	t := root.SetupRouter()
-	t.ListenAndServe()
+	err = t.ListenAndServe()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 }

@@ -10,5 +10,6 @@ func WebRouter(r *gin.Engine) {
 	{
 		group.POST("/createlog", web.CreateWebLogPath)
 		group.POST("/clearcache", web.ClearCache)
+		group.GET("/restart-adjust", web.RestartAdjustProgramController)
 	}
 }

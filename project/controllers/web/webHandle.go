@@ -7,7 +7,10 @@ import (
 
 type WebHandle struct {
 	Path string
+	Item string
 }
+
+type Option func(*WebHandle)
 
 func (wh *WebHandle) CreateLog() (err error) {
 	err = wh.ExecuteCmd(CreateLogScript)
@@ -25,6 +28,14 @@ func (wh *WebHandle) ClearCache() (err error) {
 	return
 }
 
+func (wh *WebHandle) RestartAd() (err error) {
+	err = wh.ExecuteCmd(RestartAdjust)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (wh *WebHandle) ExecuteCmd(cmd string) (err error) {
 	out, err := exec.Command("sh", cmd, wh.Path).Output()
 	if err != nil {
@@ -33,8 +44,11 @@ func (wh *WebHandle) ExecuteCmd(cmd string) (err error) {
 	return
 }
 
-func NewWebHandle(path string) *WebHandle {
-	return &WebHandle{
-		Path: path,
+func NewWebHandle(op ...Option) *WebHandle {
+	var w = &WebHandle{}
+	for _, v := range op {
+		v(w)
 	}
+
+	return w
 }

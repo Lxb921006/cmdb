@@ -4,25 +4,24 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/Lxb921006/cmdb/project/config"
 	"github.com/go-redis/redis"
 )
 
-//把关于redis的处理都放这里了,想不到好的位置放
+// 把关于redis的处理都放这里了,想不到好的位置放
 var (
 	RdPool *redis.Client
 	Rds    *RedisDb
 )
 
-//初始化redis连接池
-func InitPoolRds(addr string, db int) {
+// 初始化redis连接池
+func InitPoolRds() {
 	RdPool = redis.NewClient(&redis.Options{
-		Addr:         strings.Split(addr, "&")[0],
-		DB:           db,
-		Password:     strings.Split(addr, "&")[1],
+		Addr:         config.RedisConAddre,
+		DB:           config.RedisUserDb,
+		Password:     config.RedisPwd,
 		MinIdleConns: 5,
 		PoolSize:     30,
 		PoolTimeout:  30 * time.Second,
