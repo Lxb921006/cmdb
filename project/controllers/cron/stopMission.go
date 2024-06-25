@@ -17,6 +17,5 @@ func StopCron(sc CronForm) (err error) {
 		}
 		return errors.New(string(msg))
 	}
-
 	return
 }

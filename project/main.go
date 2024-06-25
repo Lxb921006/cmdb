@@ -9,11 +9,11 @@ import (
 
 func main() {
 	//初始化mysql
-	err := dao.InitPoolMysql()
-	if err != nil {
-		log.Fatalf(err.Error())
-		return
-	}
+	//err := dao.InitPoolMysql()
+	//if err != nil {
+	//	log.Fatalf(err.Error())
+	//	return
+	//}
 
 	//初始化redis连接池
 	dao.InitPoolRds()
@@ -25,7 +25,7 @@ func main() {
 
 	//初始化gin并启动
 	t := root.SetupRouter()
-	err = t.ListenAndServe()
+	err := t.ListenAndServe()
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
