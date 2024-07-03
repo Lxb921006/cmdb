@@ -25,7 +25,7 @@ func SetupRouter() *http.Server {
 	smb.SmbRouter(router)
 
 	t := &http.Server{
-		Addr:           ":9295",
+		Addr:           ":9294",
 		Handler:        router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
