@@ -82,6 +82,7 @@ func RestartAdjustProgramController(ctx *gin.Context) {
 	if err := ctx.ShouldBind(&rap); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
+			"code":    10001,
 		})
 		return
 	}
@@ -96,7 +97,7 @@ func RestartAdjustProgramController(ctx *gin.Context) {
 	if err := cc.RestartAd(); err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"msg":  err.Error(),
-			"code": 10000,
+			"code": 10002,
 		})
 		return
 	}

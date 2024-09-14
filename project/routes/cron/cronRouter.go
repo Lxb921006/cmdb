@@ -10,5 +10,7 @@ func CronRouter(r *gin.Engine) {
 	{
 		group.POST("/run", cron.Run)
 		group.POST("/stop", cron.Stop)
+		group.GET("/get-running-shell", cron.GetRunningCron)
+		group.GET("/get-cron-content", cron.GetCronFileContent)
 	}
 }
