@@ -24,7 +24,7 @@ func CheckWebCodeContentCtl(ctx *gin.Context) {
 		return
 	}
 
-	data, err := os.ReadFile(filepath.Join(rootDir, ctl.Path))
+	data, err := os.ReadFile(filepath.Join(rootDir, ctl.t))
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -32,5 +32,4 @@ func CheckWebCodeContentCtl(ctx *gin.Context) {
 
 	// 设置响应内容类型为"text/plain"，根据你的文件类型可能需要调整
 	ctx.Data(http.StatusOK, "text/plain; charset=utf-8", data)
-
 }
