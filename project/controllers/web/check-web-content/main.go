@@ -1,6 +1,7 @@
 package check_web_content
 
 import (
+	"encoding/base64"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -20,16 +21,26 @@ func CheckWebCodeContentCtl(ctx *gin.Context) {
 	if err := ctx.ShouldBind(&ctl); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
+			"data":    "",
 		})
 		return
 	}
 
-	data, err := os.ReadFile(filepath.Join(rootDir, ctl.t))
+	b, err := os.ReadFile(filepath.Join(rootDir, ctl.Path))
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+			"data":    "",
+		})
+
 		return
 	}
 
-	// 设置响应内容类型为"text/plain"，根据你的文件类型可能需要调整
-	ctx.Data(http.StatusOK, "text/plain; charset=utf-8", data)
+	base64String := base64.StdEncoding.EncodeToString(b)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "ok",
+		"data":    base64String,
+	})
+
 }
